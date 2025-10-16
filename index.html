@@ -32,7 +32,7 @@
     .total-time-container {
       display: flex;
       flex-direction: column;
-      align-items: flex-start;
+      align-items: center;
       gap: 2px;
     }
 
@@ -306,8 +306,15 @@
       transition: transform 0.3s ease;
     }
 
-    .category-name-input {
+    .category-info {
       flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .category-name-input {
+      width: 100%;
       background: rgba(255, 255, 255, 0.9);
       border: 1px solid rgba(255, 255, 255, 0.3);
       border-radius: 6px;
@@ -321,6 +328,26 @@
     .category-name-input:focus {
       border-color: #667eea;
       background: white;
+    }
+
+    .category-time-summary {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.9);
+      padding-left: 10px;
+    }
+
+    .category-elapsed-time {
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .category-target-time {
+      font-weight: 400;
+      color: rgba(255, 255, 255, 0.7);
+      font-variant-numeric: tabular-nums;
     }
 
     .category-controls {
@@ -642,7 +669,7 @@
   <div class="header">
     <div class="total-time-container">
       <div class="total-time-display" id="totalTimeDisplay">00:00:00</div>
-      <div class="target-total-display" id="targetTotalDisplay">目標: --:--:--</div>
+      <div class="target-total-display" id="targetTotalDisplay">--:--:--</div>
     </div>
     <div class="header-buttons">
       <button id="menuBtn" title="メニュー" class="menu-btn">

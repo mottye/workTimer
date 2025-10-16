@@ -279,6 +279,7 @@ function createStopwatchCard(stopwatch) {
     stopwatch.setTargetTime(targetHours.value, targetMinutes.value, targetSeconds.value);
     updateTimerDisplay();
     updateTargetTotalTime();
+    updateCategoryTime(stopwatch.categoryId);
   };
   
   targetHours.addEventListener('input', updateTargetTime);
@@ -374,6 +375,7 @@ function updateTotalTime() {
     totalTimeDisplay.textContent = formatTime(totalSeconds);
   }
   updateTargetTotalTime();
+  updateAllCategoryTimes();
 }
 
 // 目標時間の合計を更新
@@ -384,9 +386,47 @@ function updateTargetTotalTime() {
   
   if (targetTotalDisplay) {
     if (targetTotalSeconds > 0) {
-      targetTotalDisplay.textContent = `目標: ${formatTime(targetTotalSeconds)}`;
+      targetTotalDisplay.textContent = formatTime(targetTotalSeconds);
     } else {
-      targetTotalDisplay.textContent = '目標: --:--:--';
+      targetTotalDisplay.textContent = '--:--:--';
+    }
+  }
+}
+
+// 全カテゴリの時間を更新
+function updateAllCategoryTimes() {
+  categories.forEach(category => {
+    updateCategoryTime(category.id);
+  });
+}
+
+// カテゴリごとの時間を更新
+function updateCategoryTime(categoryId) {
+  const categoryContainer = document.querySelector(`.category-container[data-category-id="${categoryId}"]`);
+  if (!categoryContainer) return;
+  
+  const elapsedTimeElement = categoryContainer.querySelector('.category-elapsed-time');
+  const targetTimeElement = categoryContainer.querySelector('.category-target-time');
+  
+  // そのカテゴリに属するストップウォッチを取得
+  const categoryStopwatches = stopwatches.filter(sw => sw.categoryId === categoryId);
+  
+  // 経過時間の合計
+  const elapsedTotal = categoryStopwatches.reduce((sum, sw) => sum + sw.elapsedSeconds, 0);
+  
+  // 目標時間の合計
+  const targetTotal = categoryStopwatches.reduce((sum, sw) => sum + (sw.targetSeconds || 0), 0);
+  
+  // 表示を更新
+  if (elapsedTimeElement) {
+    elapsedTimeElement.textContent = formatTime(elapsedTotal);
+  }
+  
+  if (targetTimeElement) {
+    if (targetTotal > 0) {
+      targetTimeElement.textContent = `/ ${formatTime(targetTotal)}`;
+    } else {
+      targetTimeElement.textContent = '/ --:--:--';
     }
   }
 }
@@ -413,7 +453,13 @@ function createCategoryContainer(category) {
         <span class="material-icons collapse-icon">expand_more</span>
       </button>
       <span class="drag-handle" title="ドラッグして移動">⋮⋮</span>
-      <input type="text" class="category-name-input" value="${category.name}" placeholder="カテゴリ名">
+      <div class="category-info">
+        <input type="text" class="category-name-input" value="${category.name}" placeholder="カテゴリ名">
+        <div class="category-time-summary">
+          <span class="category-elapsed-time">00:00:00</span>
+          <span class="category-target-time">/ --:--:--</span>
+        </div>
+      </div>
       <div class="category-controls">
         <button class="category-menu-btn" title="メニュー">
           <span class="material-icons">more_vert</span>
