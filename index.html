@@ -237,11 +237,12 @@
     }
 
     .category-controls {
+      position: relative;
       display: flex;
       gap: 4px;
     }
 
-    .category-add-timer-btn, .category-delete-btn {
+    .category-menu-btn {
       width: 28px;
       height: 28px;
       border-radius: 50%;
@@ -251,27 +252,35 @@
       align-items: center;
       justify-content: center;
       transition: all 0.2s;
-      font-size: 14px;
+      background: rgba(255, 255, 255, 0.2);
+      color: rgba(255, 255, 255, 0.9);
+      flex-shrink: 0;
     }
 
-    .category-add-timer-btn {
-      background: #10b981;
-      color: white;
-    }
-
-    .category-add-timer-btn:hover {
-      background: #059669;
+    .category-menu-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
       transform: scale(1.1);
     }
 
-    .category-delete-btn {
-      background: #ef4444;
-      color: white;
+    .category-menu-btn .material-icons {
+      font-size: 18px;
     }
 
-    .category-delete-btn:hover {
-      background: #dc2626;
-      transform: scale(1.1);
+    .category-dropdown-menu {
+      position: absolute;
+      top: 35px;
+      right: 0;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      min-width: 180px;
+      overflow: hidden;
+      z-index: 1000;
+      animation: slideDown 0.2s ease-out;
+    }
+
+    .category-dropdown-menu.hidden {
+      display: none;
     }
 
     .category-timers {

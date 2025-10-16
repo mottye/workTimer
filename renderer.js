@@ -307,12 +307,23 @@ function createCategoryContainer(category) {
       <span class="drag-handle" title="ドラッグして移動">⋮⋮</span>
       <input type="text" class="category-name-input" value="${category.name}" placeholder="カテゴリ名">
       <div class="category-controls">
-        <button class="category-add-timer-btn" title="タイマーを追加">+</button>
-        <button class="category-delete-btn" title="カテゴリを削除"><span class="material-icons" style="font-size: 14px;">delete</span></button>
+        <button class="category-menu-btn" title="メニュー">
+          <span class="material-icons">more_vert</span>
+        </button>
+        <div class="category-dropdown-menu hidden">
+          <div class="menu-item category-add-timer-item">
+            <span class="material-icons">add_circle_outline</span>
+            <span>タイマーを追加</span>
+          </div>
+          <div class="menu-item category-delete-item">
+            <span class="material-icons">delete</span>
+            <span>カテゴリを削除</span>
+          </div>
+        </div>
       </div>
     </div>
     <div class="category-timers" data-category-id="${category.id}">
-      <div class="category-empty-state">「+」でタイマーを追加</div>
+      <div class="category-empty-state">「メニューからタイマーを追加」</div>
     </div>
   `;
 
@@ -321,8 +332,10 @@ function createCategoryContainer(category) {
   const collapseIcon = container.querySelector('.collapse-icon');
   const categoryTimers = container.querySelector('.category-timers');
   const nameInput = container.querySelector('.category-name-input');
-  const addTimerBtn = container.querySelector('.category-add-timer-btn');
-  const deleteBtn = container.querySelector('.category-delete-btn');
+  const categoryMenuBtn = container.querySelector('.category-menu-btn');
+  const categoryDropdownMenu = container.querySelector('.category-dropdown-menu');
+  const categoryAddTimerItem = container.querySelector('.category-add-timer-item');
+  const categoryDeleteItem = container.querySelector('.category-delete-item');
 
   // 折りたたみボタン
   collapseBtn.addEventListener('click', (e) => {
@@ -344,12 +357,29 @@ function createCategoryContainer(category) {
     category.name = e.target.value;
   });
 
-  addTimerBtn.addEventListener('click', () => {
-    addStopwatch(category.id);
+  // カテゴリメニューの開閉
+  categoryMenuBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    // 他のカテゴリメニューを閉じる
+    document.querySelectorAll('.category-dropdown-menu').forEach(menu => {
+      if (menu !== categoryDropdownMenu) {
+        menu.classList.add('hidden');
+      }
+    });
+    categoryDropdownMenu.classList.toggle('hidden');
   });
 
-  deleteBtn.addEventListener('click', () => {
+  // メニュー項目のクリック
+  categoryAddTimerItem.addEventListener('click', (e) => {
+    e.stopPropagation();
+    addStopwatch(category.id);
+    categoryDropdownMenu.classList.add('hidden');
+  });
+
+  categoryDeleteItem.addEventListener('click', (e) => {
+    e.stopPropagation();
     removeCategory(category.id);
+    categoryDropdownMenu.classList.add('hidden');
   });
 
   // ドラッグ&ドロップイベント（カテゴリ）
@@ -606,9 +636,19 @@ menuBtn.addEventListener('click', (e) => {
 
 // メニュー外をクリックしたら閉じる
 document.addEventListener('click', (e) => {
+  // ヘッダーメニューを閉じる
   if (!dropdownMenu.contains(e.target) && e.target !== menuBtn) {
     dropdownMenu.classList.add('hidden');
   }
+  
+  // カテゴリメニューをすべて閉じる
+  const categoryMenus = document.querySelectorAll('.category-dropdown-menu');
+  categoryMenus.forEach(menu => {
+    const menuBtn = menu.parentElement.querySelector('.category-menu-btn');
+    if (!menu.contains(e.target) && !menuBtn.contains(e.target)) {
+      menu.classList.add('hidden');
+    }
+  });
 });
 
 // メニュー項目のクリックイベント
