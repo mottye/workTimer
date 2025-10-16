@@ -232,12 +232,12 @@ class Stopwatch {
 }
 
 // ストップウォッチを追加
-function addStopwatch(categoryId = null) {
+function addStopwatch(categoryId = null, autoEdit = true) {
   const stopwatch = new Stopwatch(nextStopwatchId++, categoryId);
   stopwatches.push(stopwatch);
 
   // ストップウォッチカードを作成
-  const card = createStopwatchCard(stopwatch);
+  const card = createStopwatchCard(stopwatch, autoEdit);
 
   if (categoryId) {
     // カテゴリ内に追加
@@ -261,13 +261,14 @@ function addStopwatch(categoryId = null) {
 }
 
 // ストップウォッチカードのHTML作成
-function createStopwatchCard(stopwatch) {
+function createStopwatchCard(stopwatch, autoEdit = false) {
   const card = document.createElement('div');
   card.className = 'timer-card';
   card.setAttribute('data-timer-id', stopwatch.id);
   card.setAttribute('draggable', 'true');
 
   card.innerHTML = `
+    <button class="timer-menu-btn-top" title="メニュー" data-timer-id="${stopwatch.id}"><span class="material-icons">more_vert</span></button>
     <div class="task-name-container">
       <span class="drag-handle-small" title="ドラッグして移動">⋮⋮</span>
       <span class="task-name-display">タスク名なし</span>
@@ -288,21 +289,6 @@ function createStopwatchCard(stopwatch) {
       <div class="timer-display">${stopwatch.formatTime(stopwatch.elapsedSeconds)}</div>
       <div class="timer-controls">
         <button class="toggle-btn" title="スタート"><span class="material-icons">play_arrow</span></button>
-        <button class="timer-menu-btn" title="メニュー"><span class="material-icons">more_vert</span></button>
-        <div class="timer-dropdown-menu hidden">
-          <div class="menu-item timer-edit-item">
-            <span class="material-icons">edit</span>
-            <span>編集</span>
-          </div>
-          <div class="menu-item timer-clear-item">
-            <span class="material-icons">refresh</span>
-            <span>リセット</span>
-          </div>
-          <div class="menu-item timer-delete-item">
-            <span class="material-icons">delete</span>
-            <span>削除</span>
-          </div>
-        </div>
       </div>
     </div>
   `;
@@ -317,11 +303,7 @@ function createStopwatchCard(stopwatch) {
   const targetSeconds = card.querySelector('.target-seconds');
   const toggleBtn = card.querySelector('.toggle-btn');
   const timerDisplay = card.querySelector('.timer-display');
-  const timerMenuBtn = card.querySelector('.timer-menu-btn');
-  const timerDropdownMenu = card.querySelector('.timer-dropdown-menu');
-  const timerEditItem = card.querySelector('.timer-edit-item');
-  const timerClearItem = card.querySelector('.timer-clear-item');
-  const timerDeleteItem = card.querySelector('.timer-delete-item');
+  const timerMenuBtn = card.querySelector('.timer-menu-btn-top');
   
   // 編集モードの状態
   let isEditing = false;
@@ -345,17 +327,8 @@ function createStopwatchCard(stopwatch) {
   // タイマーメニューの開閉
   timerMenuBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    // 他のタイマーメニューを閉じる
-    document.querySelectorAll('.timer-dropdown-menu').forEach(menu => {
-      if (menu !== timerDropdownMenu) {
-        menu.classList.add('hidden');
-      }
-    });
-    // カテゴリメニューも閉じる
-    document.querySelectorAll('.category-dropdown-menu').forEach(menu => {
-      menu.classList.add('hidden');
-    });
-    timerDropdownMenu.classList.toggle('hidden');
+    // 通常モードならメニューを表示
+    showTimerOverlayMenu(stopwatch, timerMenuBtn, toggleEditMode);
   });
 
   // タスク名の変更
@@ -399,6 +372,9 @@ function createStopwatchCard(stopwatch) {
   // トグルボタンの表示を更新
   const updateToggleButton = () => {
     const icon = toggleBtn.querySelector('.material-icons');
+    // confirm-btnクラスを削除
+    toggleBtn.classList.remove('confirm-btn');
+    
     if (stopwatch.isRunning && !stopwatch.isPaused) {
       // 実行中：一時停止アイコンを表示
       icon.textContent = 'pause';
@@ -414,6 +390,13 @@ function createStopwatchCard(stopwatch) {
 
   // ボタンイベント
   toggleBtn.addEventListener('click', () => {
+    // 編集モードの場合は確定処理
+    if (toggleBtn.classList.contains('confirm-btn')) {
+      toggleEditMode();
+      return;
+    }
+    
+    // 通常モードの場合は再生/一時停止
     if (stopwatch.isRunning && !stopwatch.isPaused) {
       // 実行中なら一時停止
       stopwatch.pause();
@@ -422,37 +405,6 @@ function createStopwatchCard(stopwatch) {
       stopwatch.start();
     }
     updateToggleButton();
-  });
-
-  // リセットメニュー項目
-  timerClearItem.addEventListener('click', (e) => {
-    e.stopPropagation();
-    // リセット前に確認ダイアログを表示
-    const taskName = stopwatch.taskName || 'タスク名なし';
-    const timeDisplay = stopwatch.formatTime(stopwatch.elapsedSeconds);
-    const confirmMessage = `「${taskName}」の時間（${timeDisplay}）をリセットしてもよろしいですか？`;
-    
-    if (confirm(confirmMessage)) {
-      stopwatch.clear();
-      updateToggleButton();
-    }
-    timerDropdownMenu.classList.add('hidden');
-  });
-
-  // 削除メニュー項目
-  timerDeleteItem.addEventListener('click', (e) => {
-    e.stopPropagation();
-    removeStopwatch(stopwatch.id);
-    timerDropdownMenu.classList.add('hidden');
-  });
-
-  // 編集メニュー項目
-  timerEditItem.addEventListener('click', (e) => {
-    e.stopPropagation();
-    timerDropdownMenu.classList.add('hidden');
-    
-    // 編集ボタンのクリックをトリガー
-    toggleEditMode();
   });
 
   // 編集モードの切り替え関数
@@ -483,11 +435,15 @@ function createStopwatchCard(stopwatch) {
       
       taskNameInput.focus();
       
-      // メニューボタンの表示を変更
-      const icon = timerMenuBtn.querySelector('.material-icons');
+      // メニューボタンを非表示
+      timerMenuBtn.classList.add('hidden');
+      
+      // 再生ボタンを確定ボタンに変更
+      const icon = toggleBtn.querySelector('.material-icons');
       icon.textContent = 'check';
-      timerMenuBtn.title = '完了';
-      timerMenuBtn.classList.add('edit-active');
+      toggleBtn.title = '確定';
+      toggleBtn.classList.add('confirm-btn');
+      toggleBtn.disabled = false;
     } else {
       // 編集モードOFF: displayを表示、inputを非表示
       taskNameDisplay.classList.remove('hidden');
@@ -498,11 +454,11 @@ function createStopwatchCard(stopwatch) {
       // 表示を更新
       updateDisplays();
       
-      // メニューボタンの表示を変更
-      const icon = timerMenuBtn.querySelector('.material-icons');
-      icon.textContent = 'more_vert';
-      timerMenuBtn.title = 'メニュー';
-      timerMenuBtn.classList.remove('edit-active');
+      // メニューボタンを表示
+      timerMenuBtn.classList.remove('hidden');
+      
+      // 確定ボタンを再生ボタンに戻す
+      updateToggleButton();
     }
   };
 
@@ -511,6 +467,14 @@ function createStopwatchCard(stopwatch) {
   card.addEventListener('dragover', handleTimerDragOver);
   card.addEventListener('drop', handleTimerDrop);
   card.addEventListener('dragend', handleDragEnd);
+
+  // 自動編集モード
+  if (autoEdit) {
+    // 少し遅延させてDOMに追加されてから編集モードを開始
+    setTimeout(() => {
+      toggleEditMode();
+    }, 100);
+  }
 
   return card;
 }
@@ -653,7 +617,6 @@ function createCategoryContainer(category) {
         <div class="category-name-wrapper">
           <span class="category-name-display">${category.name}</span>
           <input type="text" class="category-name-input hidden" value="${category.name}" placeholder="カテゴリ名">
-          <button class="category-edit-btn" title="編集"><span class="material-icons">edit</span></button>
         </div>
         <div class="category-time-summary">
           <span class="category-elapsed-time">00:00:00</span>
@@ -661,19 +624,10 @@ function createCategoryContainer(category) {
         </div>
       </div>
       <div class="category-controls">
-        <button class="category-menu-btn" title="メニュー">
+        <button class="category-confirm-btn hidden" title="確定"><span class="material-icons">check</span></button>
+        <button class="category-menu-btn" title="メニュー" data-category-id="${category.id}">
           <span class="material-icons">more_vert</span>
         </button>
-        <div class="category-dropdown-menu hidden">
-          <div class="menu-item category-add-timer-item">
-            <span class="material-icons">add_circle_outline</span>
-            <span>タイマーを追加</span>
-          </div>
-          <div class="menu-item category-delete-item">
-            <span class="material-icons">delete</span>
-            <span>カテゴリを削除</span>
-          </div>
-        </div>
       </div>
     </div>
     <div class="category-timers" data-category-id="${category.id}">
@@ -687,11 +641,8 @@ function createCategoryContainer(category) {
   const categoryTimers = container.querySelector('.category-timers');
   const nameDisplay = container.querySelector('.category-name-display');
   const nameInput = container.querySelector('.category-name-input');
-  const categoryEditBtn = container.querySelector('.category-edit-btn');
   const categoryMenuBtn = container.querySelector('.category-menu-btn');
-  const categoryDropdownMenu = container.querySelector('.category-dropdown-menu');
-  const categoryAddTimerItem = container.querySelector('.category-add-timer-item');
-  const categoryDeleteItem = container.querySelector('.category-delete-item');
+  const categoryConfirmBtn = container.querySelector('.category-confirm-btn');
   
   // カテゴリ編集モードの状態
   let isCategoryEditing = false;
@@ -717,9 +668,8 @@ function createCategoryContainer(category) {
     nameDisplay.textContent = e.target.value;
   });
 
-  // カテゴリ編集ボタンイベント
-  categoryEditBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
+  // カテゴリ編集モードの切り替え関数
+  const toggleCategoryEditMode = () => {
     isCategoryEditing = !isCategoryEditing;
     
     if (isCategoryEditing) {
@@ -730,48 +680,31 @@ function createCategoryContainer(category) {
       nameInput.focus();
       nameInput.select();
       
-      // ボタンの表示を変更
-      const icon = categoryEditBtn.querySelector('.material-icons');
-      icon.textContent = 'check';
-      categoryEditBtn.title = '完了';
-      categoryEditBtn.classList.add('edit-active');
+      // メニューボタンを非表示、確定ボタンを表示
+      categoryMenuBtn.classList.add('hidden');
+      categoryConfirmBtn.classList.remove('hidden');
     } else {
       // 編集モードOFF: displayを表示、inputを非表示
       nameDisplay.classList.remove('hidden');
       nameInput.classList.add('hidden');
       nameDisplay.textContent = category.name;
       
-      // ボタンの表示を変更
-      const icon = categoryEditBtn.querySelector('.material-icons');
-      icon.textContent = 'edit';
-      categoryEditBtn.title = '編集';
-      categoryEditBtn.classList.remove('edit-active');
+      // 確定ボタンを非表示、メニューボタンを表示
+      categoryConfirmBtn.classList.add('hidden');
+      categoryMenuBtn.classList.remove('hidden');
     }
+  };
+
+  // 確定ボタンイベント
+  categoryConfirmBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleCategoryEditMode();
   });
 
   // カテゴリメニューの開閉
   categoryMenuBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    // 他のカテゴリメニューを閉じる
-    document.querySelectorAll('.category-dropdown-menu').forEach(menu => {
-      if (menu !== categoryDropdownMenu) {
-        menu.classList.add('hidden');
-      }
-    });
-    categoryDropdownMenu.classList.toggle('hidden');
-  });
-
-  // メニュー項目のクリック
-  categoryAddTimerItem.addEventListener('click', (e) => {
-    e.stopPropagation();
-    addStopwatch(category.id);
-    categoryDropdownMenu.classList.add('hidden');
-  });
-
-  categoryDeleteItem.addEventListener('click', (e) => {
-    e.stopPropagation();
-    removeCategory(category.id);
-    categoryDropdownMenu.classList.add('hidden');
+    showCategoryOverlayMenu(category, categoryMenuBtn, toggleCategoryEditMode);
   });
 
   // ドラッグ&ドロップイベント（カテゴリ）
@@ -1173,4 +1106,178 @@ opacitySlider.addEventListener('click', (e) => {
 document.querySelector('.menu-item-slider').addEventListener('click', (e) => {
   e.stopPropagation();
 });
+
+// カテゴリメニューをオーバーレイ表示する関数
+function showCategoryOverlayMenu(category, button, toggleEditModeCallback) {
+  // 既存のオーバーレイがあれば削除
+  const existingOverlay = document.querySelector('.timer-menu-overlay');
+  if (existingOverlay) {
+    existingOverlay.remove();
+    return;
+  }
+
+  // オーバーレイとメニューを作成
+  const overlay = document.createElement('div');
+  overlay.className = 'timer-menu-overlay';
+  
+  const menu = document.createElement('div');
+  menu.className = 'timer-overlay-menu';
+  
+  menu.innerHTML = `
+    <div class="menu-item category-edit-item">
+      <span class="material-icons">edit</span>
+      <span>編集</span>
+    </div>
+    <div class="menu-item category-add-timer-item">
+      <span class="material-icons">add_circle_outline</span>
+      <span>タイマーを追加</span>
+    </div>
+    <div class="menu-item category-delete-item">
+      <span class="material-icons">delete</span>
+      <span>カテゴリを削除</span>
+    </div>
+  `;
+  
+  // ボタンの位置を取得してメニューを配置
+  const buttonRect = button.getBoundingClientRect();
+  menu.style.position = 'fixed';
+  menu.style.top = `${buttonRect.bottom + 5}px`;
+  menu.style.right = `${window.innerWidth - buttonRect.right}px`;
+  
+  overlay.appendChild(menu);
+  document.body.appendChild(overlay);
+  
+  // アニメーション用に少し遅延
+  setTimeout(() => {
+    overlay.classList.add('show');
+  }, 10);
+  
+  // メニュー項目のイベントリスナー
+  const editItem = menu.querySelector('.category-edit-item');
+  const addTimerItem = menu.querySelector('.category-add-timer-item');
+  const deleteItem = menu.querySelector('.category-delete-item');
+  
+  editItem.addEventListener('click', (e) => {
+    e.stopPropagation();
+    overlay.remove();
+    
+    // 編集モードを切り替え
+    if (toggleEditModeCallback) {
+      toggleEditModeCallback();
+    }
+  });
+  
+  addTimerItem.addEventListener('click', (e) => {
+    e.stopPropagation();
+    overlay.remove();
+    addStopwatch(category.id);
+  });
+  
+  deleteItem.addEventListener('click', (e) => {
+    e.stopPropagation();
+    overlay.remove();
+    removeCategory(category.id);
+  });
+  
+  // オーバーレイをクリックしたら閉じる
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) {
+      overlay.remove();
+    }
+  });
+}
+
+// タイマーメニューをオーバーレイ表示する関数
+function showTimerOverlayMenu(stopwatch, button, toggleEditModeCallback) {
+  // 既存のオーバーレイがあれば削除
+  const existingOverlay = document.querySelector('.timer-menu-overlay');
+  if (existingOverlay) {
+    existingOverlay.remove();
+    return;
+  }
+
+  // オーバーレイとメニューを作成
+  const overlay = document.createElement('div');
+  overlay.className = 'timer-menu-overlay';
+  
+  const menu = document.createElement('div');
+  menu.className = 'timer-overlay-menu';
+  
+  menu.innerHTML = `
+    <div class="menu-item timer-edit-item">
+      <span class="material-icons">edit</span>
+      <span>編集</span>
+    </div>
+    <div class="menu-item timer-clear-item">
+      <span class="material-icons">refresh</span>
+      <span>リセット</span>
+    </div>
+    <div class="menu-item timer-delete-item">
+      <span class="material-icons">delete</span>
+      <span>削除</span>
+    </div>
+  `;
+  
+  // ボタンの位置を取得してメニューを配置
+  const buttonRect = button.getBoundingClientRect();
+  menu.style.position = 'fixed';
+  menu.style.top = `${buttonRect.bottom + 5}px`;
+  menu.style.right = `${window.innerWidth - buttonRect.right}px`;
+  
+  overlay.appendChild(menu);
+  document.body.appendChild(overlay);
+  
+  // アニメーション用に少し遅延
+  setTimeout(() => {
+    overlay.classList.add('show');
+  }, 10);
+  
+  // メニュー項目のイベントリスナー
+  const editItem = menu.querySelector('.timer-edit-item');
+  const clearItem = menu.querySelector('.timer-clear-item');
+  const deleteItem = menu.querySelector('.timer-delete-item');
+  
+  editItem.addEventListener('click', (e) => {
+    e.stopPropagation();
+    overlay.remove();
+    
+    // 編集モードを切り替え
+    if (toggleEditModeCallback) {
+      toggleEditModeCallback();
+    }
+  });
+  
+  clearItem.addEventListener('click', (e) => {
+    e.stopPropagation();
+    overlay.remove();
+    
+    const taskName = stopwatch.taskName || 'タスク名なし';
+    const timeDisplay = stopwatch.formatTime(stopwatch.elapsedSeconds);
+    const confirmMessage = `「${taskName}」の時間（${timeDisplay}）をリセットしてもよろしいですか？`;
+    
+    if (confirm(confirmMessage)) {
+      stopwatch.clear();
+      const card = document.querySelector(`[data-timer-id="${stopwatch.id}"]`);
+      const toggleBtn = card.querySelector('.toggle-btn');
+      const icon = toggleBtn.querySelector('.material-icons');
+      icon.textContent = 'play_arrow';
+      toggleBtn.title = 'スタート';
+      toggleBtn.classList.remove('pause-btn');
+      toggleBtn.classList.add('start-btn');
+    }
+  });
+  
+  deleteItem.addEventListener('click', (e) => {
+    e.stopPropagation();
+    overlay.remove();
+    removeStopwatch(stopwatch.id);
+  });
+  
+  // オーバーレイをクリックしたら閉じる
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) {
+      overlay.remove();
+    }
+  });
+}
 

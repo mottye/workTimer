@@ -307,6 +307,8 @@
       transition: all 0.3s ease;
       border: 2px solid transparent;
       cursor: move;
+      position: relative;
+      overflow: visible;
     }
 
     .timer-card.dragging {
@@ -626,7 +628,7 @@
       min-height: 40px;
       transition: all 0.3s ease;
       max-height: 2000px;
-      overflow: hidden;
+      overflow: visible;
       opacity: 1;
     }
 
@@ -637,6 +639,7 @@
       margin-top: 0;
       padding-top: 0;
       gap: 0;
+      overflow: hidden;
     }
 
     .category-container.collapsed {
@@ -859,42 +862,91 @@
       background: #4b5563;
     }
 
-    .timer-menu-btn {
+    .timer-menu-btn-top {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 28px;
+      height: 28px;
+      border: none;
+      border-radius: 50%;
       background: #3b82f6;
       color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      padding: 0;
+      z-index: 10;
     }
 
-    .timer-menu-btn:hover:not(:disabled) {
+    .timer-menu-btn-top:hover:not(:disabled) {
       background: #2563eb;
+      transform: scale(1.05);
     }
 
-    .timer-menu-btn.edit-active {
+    .timer-menu-btn-top.edit-active {
       background: #10b981;
     }
 
-    .timer-menu-btn.edit-active:hover:not(:disabled) {
+    .timer-menu-btn-top.edit-active:hover:not(:disabled) {
       background: #059669;
     }
 
-    .timer-dropdown-menu {
-      position: absolute;
-      top: 35px;
+    .timer-menu-btn-top .material-icons {
+      font-size: 18px;
+    }
+
+    .timer-menu-btn-top.hidden {
+      display: none;
+    }
+
+    .timer-controls {
+      display: flex;
+      gap: 8px;
+    }
+
+    .confirm-btn {
+      background: #10b981 !important;
+    }
+
+    .confirm-btn:hover:not(:disabled) {
+      background: #059669 !important;
+    }
+
+    /* オーバーレイメニュー */
+    .timer-menu-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
       right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.3);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .timer-menu-overlay.show {
+      opacity: 1;
+    }
+
+    .timer-overlay-menu {
       background: white;
       border-radius: 8px;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
       min-width: 140px;
       overflow: hidden;
-      z-index: 1000;
-      animation: slideDown 0.2s ease-out;
+      transform: scale(0.95);
+      transition: transform 0.2s ease;
     }
 
-    .timer-dropdown-menu.hidden {
-      display: none;
-    }
-
-    .timer-controls {
-      position: relative;
+    .timer-menu-overlay.show .timer-overlay-menu {
+      transform: scale(1);
     }
 
     /* テキスト表示用のスタイル */
@@ -940,37 +992,34 @@
       gap: 4px;
     }
 
-    .category-edit-btn {
-      width: 20px;
-      height: 20px;
+    .category-confirm-btn {
+      width: 28px;
+      height: 28px;
       padding: 0;
-      background: rgba(255, 255, 255, 0.2);
+      background: #10b981;
       border: none;
       border-radius: 50%;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: rgba(255, 255, 255, 0.9);
+      color: white;
       transition: all 0.2s;
       flex-shrink: 0;
+      margin-right: 8px;
     }
 
-    .category-edit-btn:hover {
-      background: rgba(255, 255, 255, 0.3);
+    .category-confirm-btn:hover {
+      background: #059669;
       transform: scale(1.1);
     }
 
-    .category-edit-btn .material-icons {
-      font-size: 14px;
+    .category-confirm-btn .material-icons {
+      font-size: 18px;
     }
 
-    .category-edit-btn.edit-active {
-      background: rgba(16, 185, 129, 0.8);
-    }
-
-    .category-edit-btn.edit-active:hover {
-      background: rgba(16, 185, 129, 1);
+    .category-confirm-btn.hidden {
+      display: none;
     }
 
     .empty-state {
