@@ -574,6 +574,84 @@
       background: #5568d3;
     }
 
+    .dialog-slack-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid #e5e7eb;
+    }
+
+    .dialog-slack-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      width: 100%;
+    }
+
+    .dialog-slack-btn:first-child {
+      background: #10b981;
+      color: white;
+    }
+
+    .dialog-slack-btn:first-child:hover {
+      background: #059669;
+    }
+
+    .dialog-slack-btn:last-child {
+      background: #667eea;
+      color: white;
+    }
+
+    .dialog-slack-btn:last-child:hover {
+      background: #5a67d8;
+    }
+
+    .dialog-slack-btn .material-icons {
+      font-size: 18px;
+    }
+
+    .dialog-data-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .dialog-data-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      width: 100%;
+      background: #667eea;
+      color: white;
+    }
+
+    .dialog-data-btn:hover {
+      background: #5a67d8;
+    }
+
+    .dialog-data-btn .material-icons {
+      font-size: 18px;
+    }
+
     .category-controls {
       position: relative;
       display: flex;
@@ -1088,26 +1166,12 @@
         <div class="menu-divider"></div>
         <div class="menu-item" id="setSlackWebhookMenuItem">
           <span class="material-icons">settings</span>
-          <span>Slack WebhookURLを追加</span>
+          <span>Slack連携</span>
         </div>
         <div class="menu-divider"></div>
-        <div class="menu-item" id="exportCsvMenuItem">
-          <span class="material-icons">download</span>
-          <span>CSV出力</span>
-        </div>
-        <div class="menu-divider"></div>
-        <div class="menu-item" id="exportDataMenuItem">
-          <span class="material-icons">save</span>
-          <span>データエクスポート</span>
-        </div>
-        <div class="menu-item" id="importDataMenuItem">
-          <span class="material-icons">upload</span>
-          <span>データインポート</span>
-        </div>
-        <div class="menu-divider"></div>
-        <div class="menu-item" id="sendSlackNotificationMenuItem">
-          <span class="material-icons">send</span>
-          <span>Slack通知</span>
+        <div class="menu-item" id="dataManagementMenuItem">
+          <span class="material-icons">storage</span>
+          <span>データ管理</span>
         </div>
         <div class="menu-divider"></div>
         <div class="menu-item-slider">
@@ -1129,8 +1193,9 @@
   <!-- Slack Webhook URL入力ダイアログ -->
   <div id="slackWebhookDialog" class="dialog-overlay hidden">
     <div class="dialog-box">
-      <h3 class="dialog-title">Slack Webhook URL設定</h3>
+      <h3 class="dialog-title">Slack連携設定</h3>
       <input type="text" id="slackWebhookInput" class="dialog-input" placeholder="https://hooks.slack.com/services/...">
+      <input type="text" id="slackUsernameInput" class="dialog-input" placeholder="ユーザ名" style="margin-top: 10px;">
       <div class="dialog-toggle-container">
         <span class="dialog-toggle-label">Slack通知を有効にする</span>
         <label class="toggle-switch">
@@ -1138,9 +1203,43 @@
           <span class="toggle-slider"></span>
         </label>
       </div>
+      <div class="dialog-slack-buttons">
+        <button id="sendSlackNotificationScheduleBtn" class="dialog-slack-btn">
+          <span class="material-icons">schedule_send</span>
+          <span>Slack通知（予定）</span>
+        </button>
+        <button id="sendSlackNotificationActualBtn" class="dialog-slack-btn">
+          <span class="material-icons">send</span>
+          <span>Slack通知（実績）</span>
+        </button>
+      </div>
       <div class="dialog-buttons">
         <button id="slackWebhookCancel" class="dialog-btn dialog-btn-cancel">キャンセル</button>
         <button id="slackWebhookSave" class="dialog-btn dialog-btn-save">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- データ管理ダイアログ -->
+  <div id="dataManagementDialog" class="dialog-overlay hidden">
+    <div class="dialog-box">
+      <h3 class="dialog-title">データ管理</h3>
+      <div class="dialog-data-buttons">
+        <button id="exportCsvBtn" class="dialog-data-btn">
+          <span class="material-icons">download</span>
+          <span>CSV出力</span>
+        </button>
+        <button id="exportDataBtn" class="dialog-data-btn">
+          <span class="material-icons">save</span>
+          <span>データエクスポート</span>
+        </button>
+        <button id="importDataBtn" class="dialog-data-btn">
+          <span class="material-icons">upload</span>
+          <span>データインポート</span>
+        </button>
+      </div>
+      <div class="dialog-buttons">
+        <button id="dataManagementClose" class="dialog-btn dialog-btn-cancel">閉じる</button>
       </div>
     </div>
   </div>

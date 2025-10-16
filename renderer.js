@@ -9,6 +9,7 @@ let nextCategoryId = 1;
 
 // Slack Webhook URL を保存する変数
 let slackWebhookUrl = null;
+let slackUsername = ''; // Slackに通知する際のユーザ名
 let slackWebhookEnabled = false; // Slack通知の有効/無効
 let alwaysOnTop = true; // 常に最前面に表示
 
@@ -25,6 +26,12 @@ function loadSlackWebhookUrl() {
   if (savedUrl) {
     slackWebhookUrl = savedUrl;
     console.log('Slack Webhook URLを読み込みました:', slackWebhookUrl);
+  }
+  
+  const savedUsername = localStorage.getItem('slackUsername');
+  if (savedUsername) {
+    slackUsername = savedUsername;
+    console.log('Slackユーザ名を読み込みました:', slackUsername);
   }
   
   const savedEnabled = localStorage.getItem('slackWebhookEnabled');
@@ -262,10 +269,7 @@ const dropdownMenu = document.getElementById('dropdownMenu');
 const addCategoryMenuItem = document.getElementById('addCategoryMenuItem');
 const addTimerMenuItem = document.getElementById('addTimerMenuItem');
 const setSlackWebhookMenuItem = document.getElementById('setSlackWebhookMenuItem');
-const exportCsvMenuItem = document.getElementById('exportCsvMenuItem');
-const exportDataMenuItem = document.getElementById('exportDataMenuItem');
-const importDataMenuItem = document.getElementById('importDataMenuItem');
-const sendSlackNotificationMenuItem = document.getElementById('sendSlackNotificationMenuItem');
+const dataManagementMenuItem = document.getElementById('dataManagementMenuItem');
 const alwaysOnTopToggle = document.getElementById('alwaysOnTopToggle');
 const opacitySlider = document.getElementById('opacitySlider');
 const opacityValue = document.getElementById('opacityValue');
@@ -1236,13 +1240,24 @@ addTimerMenuItem.addEventListener('click', () => {
 // Slack Webhook URL設定ダイアログ
 const slackWebhookDialog = document.getElementById('slackWebhookDialog');
 const slackWebhookInput = document.getElementById('slackWebhookInput');
+const slackUsernameInput = document.getElementById('slackUsernameInput');
 const slackWebhookEnabledCheckbox = document.getElementById('slackWebhookEnabled');
 const slackWebhookSave = document.getElementById('slackWebhookSave');
 const slackWebhookCancel = document.getElementById('slackWebhookCancel');
+const sendSlackNotificationScheduleBtn = document.getElementById('sendSlackNotificationScheduleBtn');
+const sendSlackNotificationActualBtn = document.getElementById('sendSlackNotificationActualBtn');
+
+// データ管理ダイアログ
+const dataManagementDialog = document.getElementById('dataManagementDialog');
+const exportCsvBtn = document.getElementById('exportCsvBtn');
+const exportDataBtn = document.getElementById('exportDataBtn');
+const importDataBtn = document.getElementById('importDataBtn');
+const dataManagementClose = document.getElementById('dataManagementClose');
 
 // ダイアログを開く
 function openSlackWebhookDialog() {
   slackWebhookInput.value = slackWebhookUrl || '';
+  slackUsernameInput.value = slackUsername || '';
   slackWebhookEnabledCheckbox.checked = slackWebhookEnabled;
   slackWebhookDialog.classList.remove('hidden');
   slackWebhookInput.focus();
@@ -1253,12 +1268,31 @@ function openSlackWebhookDialog() {
 function closeSlackWebhookDialog() {
   slackWebhookDialog.classList.add('hidden');
   slackWebhookInput.value = '';
+  slackUsernameInput.value = '';
 }
 
 // Slack Webhook URL設定メニュー
 if (setSlackWebhookMenuItem) {
   setSlackWebhookMenuItem.addEventListener('click', () => {
     openSlackWebhookDialog();
+  });
+}
+
+// データ管理ダイアログを開く
+function openDataManagementDialog() {
+  dataManagementDialog.classList.remove('hidden');
+  dropdownMenu.classList.add('hidden');
+}
+
+// データ管理ダイアログを閉じる
+function closeDataManagementDialog() {
+  dataManagementDialog.classList.add('hidden');
+}
+
+// データ管理メニュー
+if (dataManagementMenuItem) {
+  dataManagementMenuItem.addEventListener('click', () => {
+    openDataManagementDialog();
   });
 }
 
@@ -1341,32 +1375,43 @@ function exportToCsv() {
   console.log('CSVファイルを出力しました:', filename);
 }
 
-// CSV出力メニュー
-if (exportCsvMenuItem) {
-  exportCsvMenuItem.addEventListener('click', () => {
+// データ管理ダイアログ内のボタン
+if (exportCsvBtn) {
+  exportCsvBtn.addEventListener('click', () => {
     exportToCsv();
-    dropdownMenu.classList.remove('show');
+    closeDataManagementDialog();
   });
 }
 
-// データエクスポートメニュー
-if (exportDataMenuItem) {
-  exportDataMenuItem.addEventListener('click', () => {
+if (exportDataBtn) {
+  exportDataBtn.addEventListener('click', () => {
     exportData();
-    dropdownMenu.classList.remove('show');
+    closeDataManagementDialog();
   });
 }
 
-// データインポートメニュー
-if (importDataMenuItem) {
-  importDataMenuItem.addEventListener('click', () => {
+if (importDataBtn) {
+  importDataBtn.addEventListener('click', () => {
     importData();
-    dropdownMenu.classList.remove('show');
+    closeDataManagementDialog();
   });
 }
 
-// Slack通知を送信する関数
-async function sendSlackNotification() {
+if (dataManagementClose) {
+  dataManagementClose.addEventListener('click', () => {
+    closeDataManagementDialog();
+  });
+}
+
+// ダイアログの外側をクリックしたら閉じる
+dataManagementDialog.addEventListener('click', (e) => {
+  if (e.target === dataManagementDialog) {
+    closeDataManagementDialog();
+  }
+});
+
+// Slack通知を送信する関数（予定）
+async function sendSlackNotificationSchedule() {
   // Slack Webhook URLが設定されているか確認
   if (!slackWebhookUrl) {
     alert('Slack Webhook URLが設定されていません。\n\nメインメニューから「Slack WebhookURLを追加」で設定してください。');
@@ -1387,16 +1432,11 @@ async function sendSlackNotification() {
   
   try {
     // マークダウン形式でメッセージを作成
-    let message = '*⏱️ ストップウォッチレポート*\n\n';
-    
-    // 合計時間を計算
-    const totalSeconds = stopwatches.reduce((sum, sw) => sum + sw.elapsedSeconds, 0);
-    const totalTargetSeconds = stopwatches.reduce((sum, sw) => sum + (sw.targetSeconds || 0), 0);
-    message += `*合計時間:* ${formatTimeForSlack(totalSeconds)}\n`;
-    if (totalTargetSeconds > 0) {
-      message += `*合計目標時間:* ${formatTimeForSlack(totalTargetSeconds)}\n`;
+    let message = '*本日の予定*';
+    if (slackUsername) {
+      message += ` - ${slackUsername}`;
     }
-    message += '\n---\n\n';
+    message += '\n\n';
     
     // カテゴリごとにタイマーを表示
     if (categories.length > 0) {
@@ -1407,18 +1447,13 @@ async function sendSlackNotification() {
           
           categoryStopwatches.forEach(sw => {
             const taskName = sw.taskName || 'タスク名なし';
-            const elapsed = formatTimeForSlack(sw.elapsedSeconds);
-            let line = `  • ${taskName}: ${elapsed}`;
             
             if (sw.targetSeconds && sw.targetSeconds > 0) {
               const target = formatTimeForSlack(sw.targetSeconds);
-              line += ` / ${target}`;
-              if (sw.elapsedSeconds >= sw.targetSeconds) {
-                line += ' ✅';
-              }
+              message += `  • ${taskName} (目標: ${target})\n`;
+            } else {
+              message += `  • ${taskName}\n`;
             }
-            
-            message += line + '\n';
           });
           
           message += '\n';
@@ -1433,18 +1468,13 @@ async function sendSlackNotification() {
       
       uncategorizedStopwatches.forEach(sw => {
         const taskName = sw.taskName || 'タスク名なし';
-        const elapsed = formatTimeForSlack(sw.elapsedSeconds);
-        let line = `  • ${taskName}: ${elapsed}`;
         
         if (sw.targetSeconds && sw.targetSeconds > 0) {
           const target = formatTimeForSlack(sw.targetSeconds);
-          line += ` / ${target}`;
-          if (sw.elapsedSeconds >= sw.targetSeconds) {
-            line += ' ✅';
-          }
+          message += `  • ${taskName} (目標: ${target})\n`;
+        } else {
+          message += `  • ${taskName}\n`;
         }
-        
-        message += line + '\n';
       });
     }
     
@@ -1460,8 +1490,102 @@ async function sendSlackNotification() {
     });
     
     if (response.ok) {
-      alert('✅ Slackに通知を送信しました！');
-      console.log('Slack通知を送信しました');
+      alert('✅ Slackに予定を送信しました！');
+      console.log('Slack通知（予定）を送信しました');
+    } else {
+      throw new Error(`HTTP Error: ${response.status}`);
+    }
+    
+  } catch (error) {
+    console.error('Slack通知の送信に失敗しました:', error);
+    alert(`❌ Slack通知の送信に失敗しました\n\nエラー: ${error.message}\n\nWebhook URLを確認してください。`);
+  }
+}
+
+// Slack通知を送信する関数（実績）
+async function sendSlackNotificationActual() {
+  // Slack Webhook URLが設定されているか確認
+  if (!slackWebhookUrl) {
+    alert('Slack Webhook URLが設定されていません。\n\nメインメニューから「Slack WebhookURLを追加」で設定してください。');
+    return;
+  }
+  
+  // Slack通知が有効になっているか確認
+  if (!slackWebhookEnabled) {
+    alert('Slack通知が無効になっています。\n\nメインメニューの「Slack WebhookURLを追加」から有効にしてください。');
+    return;
+  }
+  
+  // データが空の場合
+  if (stopwatches.length === 0) {
+    alert('送信するタイマーデータがありません。');
+    return;
+  }
+  
+  try {
+    // マークダウン形式でメッセージを作成
+    let message = '*本日の実績*';
+    if (slackUsername) {
+      message += ` - ${slackUsername}`;
+    }
+    message += '\n\n';
+    
+    // カテゴリごとにタイマーを表示
+    if (categories.length > 0) {
+      categories.forEach(category => {
+        const categoryStopwatches = stopwatches.filter(sw => sw.categoryId === category.id);
+        if (categoryStopwatches.length > 0) {
+          message += `*📁 ${category.name}*\n`;
+          
+          categoryStopwatches.forEach(sw => {
+            const taskName = sw.taskName || 'タスク名なし';
+            const actual = formatTimeForSlack(sw.elapsedSeconds);
+            
+            if (sw.targetSeconds && sw.targetSeconds > 0) {
+              const target = formatTimeForSlack(sw.targetSeconds);
+              message += `  • ${taskName} - 実績: ${actual} / 目標: ${target}\n`;
+            } else {
+              message += `  • ${taskName} - 実績: ${actual}\n`;
+            }
+          });
+          
+          message += '\n';
+        }
+      });
+    }
+    
+    // カテゴリなしのタイマー
+    const uncategorizedStopwatches = stopwatches.filter(sw => !sw.categoryId);
+    if (uncategorizedStopwatches.length > 0) {
+      message += '*📝 未分類*\n';
+      
+      uncategorizedStopwatches.forEach(sw => {
+        const taskName = sw.taskName || 'タスク名なし';
+        const actual = formatTimeForSlack(sw.elapsedSeconds);
+        
+        if (sw.targetSeconds && sw.targetSeconds > 0) {
+          const target = formatTimeForSlack(sw.targetSeconds);
+          message += `  • ${taskName} - 実績: ${actual} / 目標: ${target}\n`;
+        } else {
+          message += `  • ${taskName} - 実績: ${actual}\n`;
+        }
+      });
+    }
+    
+    // Slackに送信
+    const response = await fetch(slackWebhookUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        text: message
+      })
+    });
+    
+    if (response.ok) {
+      alert('✅ Slackに実績を送信しました！');
+      console.log('Slack通知（実績）を送信しました');
     } else {
       throw new Error(`HTTP Error: ${response.status}`);
     }
@@ -1481,17 +1605,24 @@ function formatTimeForSlack(totalSeconds) {
   return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 }
 
-// Slack通知メニュー
-if (sendSlackNotificationMenuItem) {
-  sendSlackNotificationMenuItem.addEventListener('click', () => {
-    sendSlackNotification();
-    dropdownMenu.classList.remove('show');
+// Slack通知ボタン（予定） - ダイアログ内
+if (sendSlackNotificationScheduleBtn) {
+  sendSlackNotificationScheduleBtn.addEventListener('click', () => {
+    sendSlackNotificationSchedule();
+  });
+}
+
+// Slack通知ボタン（実績） - ダイアログ内
+if (sendSlackNotificationActualBtn) {
+  sendSlackNotificationActualBtn.addEventListener('click', () => {
+    sendSlackNotificationActual();
   });
 }
 
 // 保存ボタン
 slackWebhookSave.addEventListener('click', () => {
   const newUrl = slackWebhookInput.value.trim();
+  const newUsername = slackUsernameInput.value.trim();
   const isEnabled = slackWebhookEnabledCheckbox.checked;
   
   if (newUrl === '') {
@@ -1505,6 +1636,11 @@ slackWebhookSave.addEventListener('click', () => {
     localStorage.setItem('slackWebhookUrl', slackWebhookUrl);
     console.log('Slack Webhook URLを保存しました:', slackWebhookUrl);
   }
+  
+  // ユーザ名を保存
+  slackUsername = newUsername;
+  localStorage.setItem('slackUsername', slackUsername);
+  console.log('Slackユーザ名を保存しました:', slackUsername);
   
   // 有効/無効の状態を保存
   slackWebhookEnabled = isEnabled;
