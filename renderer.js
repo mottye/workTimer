@@ -9,6 +9,11 @@ let nextCategoryId = 1;
 
 const { ipcRenderer } = require('electron');
 
+// 通知の許可をリクエスト
+if ('Notification' in window && Notification.permission === 'default') {
+  Notification.requestPermission();
+}
+
 const menuBtn = document.getElementById('menuBtn');
 const dropdownMenu = document.getElementById('dropdownMenu');
 const addCategoryMenuItem = document.getElementById('addCategoryMenuItem');
@@ -41,6 +46,8 @@ class Stopwatch {
     this.isRunning = false;
     this.isPaused = false;
     this.taskName = ''; // タスク名
+    this.targetSeconds = null; // 目標時間（秒）
+    this.targetReached = false; // 目標達成フラグ
   }
 
   start() {
@@ -67,6 +74,15 @@ class Stopwatch {
     this.interval = setInterval(() => {
       this.elapsedSeconds++;
       this.updateDisplay();
+      
+      // 目標時間達成チェック
+      if (this.checkTargetReached()) {
+        // 通知を表示
+        const notification = new Notification('⏱️ 目標時間達成！', {
+          body: `「${this.taskName || 'タスク'}」が目標時間に達しました。`,
+          silent: false
+        });
+      }
     }, 1000);
 
     this.updateButtons();
@@ -152,6 +168,28 @@ class Stopwatch {
   setTaskName(name) {
     this.taskName = name;
   }
+
+  setTargetTime(hours, minutes, seconds) {
+    if (hours === '' && minutes === '' && seconds === '') {
+      this.targetSeconds = null;
+      this.targetReached = false;
+      return;
+    }
+    
+    const h = parseInt(hours) || 0;
+    const m = parseInt(minutes) || 0;
+    const s = parseInt(seconds) || 0;
+    this.targetSeconds = h * 3600 + m * 60 + s;
+    this.targetReached = false;
+  }
+
+  checkTargetReached() {
+    if (this.targetSeconds !== null && !this.targetReached && this.elapsedSeconds >= this.targetSeconds) {
+      this.targetReached = true;
+      return true;
+    }
+    return false;
+  }
 }
 
 // ストップウォッチを追加
@@ -195,6 +233,14 @@ function createStopwatchCard(stopwatch) {
       <span class="drag-handle-small" title="ドラッグして移動">⋮⋮</span>
       <input type="text" class="task-name-input" placeholder="タスク名" value="">
     </div>
+    <div class="target-time-container">
+      <span class="target-label">目標:</span>
+      <input type="number" class="target-input target-hours" placeholder="時" min="0" max="99" value="">
+      <span class="target-separator">:</span>
+      <input type="number" class="target-input target-minutes" placeholder="分" min="0" max="59" value="">
+      <span class="target-separator">:</span>
+      <input type="number" class="target-input target-seconds" placeholder="秒" min="0" max="59" value="">
+    </div>
     <div class="timer-main-row">
       <div class="timer-display">${stopwatch.formatTime(stopwatch.elapsedSeconds)}</div>
       <div class="timer-controls">
@@ -209,9 +255,13 @@ function createStopwatchCard(stopwatch) {
   // イベントリスナーを追加
   const deleteBtn = card.querySelector('.delete-btn');
   const taskNameInput = card.querySelector('.task-name-input');
+  const targetHours = card.querySelector('.target-hours');
+  const targetMinutes = card.querySelector('.target-minutes');
+  const targetSeconds = card.querySelector('.target-seconds');
   const startBtn = card.querySelector('.start-btn');
   const pauseBtn = card.querySelector('.pause-btn');
   const clearBtn = card.querySelector('.clear-btn');
+  const timerDisplay = card.querySelector('.timer-display');
 
   // 削除ボタンイベント
   deleteBtn.addEventListener('click', () => {
@@ -222,6 +272,35 @@ function createStopwatchCard(stopwatch) {
   taskNameInput.addEventListener('input', (e) => {
     stopwatch.setTaskName(e.target.value);
   });
+
+  // 目標時間の入力イベント
+  const updateTargetTime = () => {
+    stopwatch.setTargetTime(targetHours.value, targetMinutes.value, targetSeconds.value);
+    updateTimerDisplay();
+  };
+  
+  targetHours.addEventListener('input', updateTargetTime);
+  targetMinutes.addEventListener('input', updateTargetTime);
+  targetSeconds.addEventListener('input', updateTargetTime);
+
+  // タイマー表示の更新（目標時間との比較も含む）
+  const updateTimerDisplay = () => {
+    timerDisplay.textContent = stopwatch.formatTime(stopwatch.elapsedSeconds);
+    
+    // 目標時間が設定されている場合の処理
+    if (stopwatch.targetSeconds !== null) {
+      if (stopwatch.elapsedSeconds >= stopwatch.targetSeconds) {
+        card.classList.add('target-reached');
+      } else {
+        card.classList.remove('target-reached');
+      }
+    } else {
+      card.classList.remove('target-reached');
+    }
+  };
+  
+  // 初回表示更新
+  updateTimerDisplay();
 
   // ボタンイベント
   startBtn.addEventListener('click', () => stopwatch.start());

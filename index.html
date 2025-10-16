@@ -433,6 +433,60 @@
       border-color: #667eea;
     }
 
+    .target-time-container {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 6px;
+      padding: 0 8px;
+    }
+
+    .target-label {
+      font-size: 11px;
+      color: #999;
+      font-weight: 500;
+    }
+
+    .target-input {
+      width: 40px;
+      padding: 4px;
+      border: 1px solid #e5e7eb;
+      border-radius: 3px;
+      font-size: 12px;
+      text-align: center;
+      background: white;
+    }
+
+    .target-input:focus {
+      border-color: #667eea;
+      outline: none;
+    }
+
+    .target-input::placeholder {
+      font-size: 10px;
+      color: #ccc;
+    }
+
+    .target-separator {
+      color: #999;
+      font-weight: bold;
+    }
+
+    .timer-card.target-reached {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
+      }
+      50% {
+        box-shadow: 0 4px 24px rgba(16, 185, 129, 0.6);
+      }
+    }
+
     .task-name-input::placeholder {
       color: #9ca3af;
       font-size: 12px;
