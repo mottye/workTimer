@@ -7,10 +7,14 @@ let currentRunningStopwatchId = null; // 現在動作中のストップウォッ
 let categories = [];
 let nextCategoryId = 1;
 
+const { ipcRenderer } = require('electron');
+
 const menuBtn = document.getElementById('menuBtn');
 const dropdownMenu = document.getElementById('dropdownMenu');
 const addCategoryMenuItem = document.getElementById('addCategoryMenuItem');
 const addTimerMenuItem = document.getElementById('addTimerMenuItem');
+const opacitySlider = document.getElementById('opacitySlider');
+const opacityValue = document.getElementById('opacityValue');
 const timersContainer = document.getElementById('timersContainer');
 const totalTimeDisplay = document.getElementById('totalTimeDisplay');
 
@@ -681,5 +685,26 @@ addCategoryMenuItem.addEventListener('click', () => {
 addTimerMenuItem.addEventListener('click', () => {
   addStopwatch(null);
   dropdownMenu.classList.add('hidden');
+});
+
+// 透明度スライダーのイベント
+opacitySlider.addEventListener('input', (e) => {
+  const opacityPercent = parseInt(e.target.value);
+  const opacity = opacityPercent / 100;
+  
+  // 透明度の値を表示
+  opacityValue.textContent = `${opacityPercent}%`;
+  
+  // メインプロセスに透明度変更を通知
+  ipcRenderer.send('set-opacity', opacity);
+});
+
+// スライダー上でクリックしてもメニューが閉じないようにする
+opacitySlider.addEventListener('click', (e) => {
+  e.stopPropagation();
+});
+
+document.querySelector('.menu-item-slider').addEventListener('click', (e) => {
+  e.stopPropagation();
 });
 

@@ -1,8 +1,10 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 
+let mainWindow;
+
 function createWindow() {
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 400,
     height: 500,
     minWidth: 400,
@@ -14,7 +16,8 @@ function createWindow() {
     },
     resizable: true,
     alwaysOnTop: true, // 常に最前面に表示
-    title: 'ストップウォッチ'
+    title: 'ストップウォッチ',
+    opacity: 1.0 // デフォルトの透明度
   });
 
   mainWindow.loadFile('index.html');
@@ -22,6 +25,13 @@ function createWindow() {
   // 開発時はDevToolsを開く（本番では削除可能）
   // mainWindow.webContents.openDevTools();
 }
+
+// 透明度変更のIPCハンドラ
+ipcMain.on('set-opacity', (event, opacity) => {
+  if (mainWindow && opacity >= 0 && opacity <= 1) {
+    mainWindow.setOpacity(opacity);
+  }
+});
 
 app.whenReady().then(() => {
   createWindow();
