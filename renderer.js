@@ -156,7 +156,12 @@ function importData() {
           const stopwatch = new Stopwatch(swData.id, swData.categoryId);
           stopwatch.taskName = swData.taskName || '';
           stopwatch.elapsedSeconds = swData.elapsedSeconds || 0;
-          stopwatch.targetSeconds = swData.targetSeconds || 0;
+          // targetSecondsは null の可能性があるので || 0 を使わない
+          stopwatch.targetSeconds = swData.targetSeconds !== undefined ? swData.targetSeconds : null;
+          // 確実に停止状態にする
+          stopwatch.isRunning = false;
+          stopwatch.isPaused = false;
+          stopwatch.interval = null;
           stopwatches.push(stopwatch);
         });
       }
