@@ -54,6 +54,7 @@ const dropdownMenu = document.getElementById('dropdownMenu');
 const addCategoryMenuItem = document.getElementById('addCategoryMenuItem');
 const addTimerMenuItem = document.getElementById('addTimerMenuItem');
 const setSlackWebhookMenuItem = document.getElementById('setSlackWebhookMenuItem');
+const exportCsvMenuItem = document.getElementById('exportCsvMenuItem');
 const alwaysOnTopToggle = document.getElementById('alwaysOnTopToggle');
 const opacitySlider = document.getElementById('opacitySlider');
 const opacityValue = document.getElementById('opacityValue');
@@ -1047,6 +1048,93 @@ function closeSlackWebhookDialog() {
 if (setSlackWebhookMenuItem) {
   setSlackWebhookMenuItem.addEventListener('click', () => {
     openSlackWebhookDialog();
+  });
+}
+
+// CSV出力関数
+function exportToCsv() {
+  // 現在の日時を取得
+  const now = new Date();
+  const timestamp = now.toLocaleString('ja-JP', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  });
+  
+  // CSVヘッダー
+  const headers = ['カテゴリ名', 'タスク名', '経過時間', '目標時間', '出力日時'];
+  const rows = [headers];
+  
+  // データを収集
+  categories.forEach(category => {
+    const categoryName = category.name || 'カテゴリ名なし';
+    
+    // カテゴリに属するタイマーを取得
+    const categoryStopwatches = stopwatches.filter(sw => sw.categoryId === category.id);
+    
+    if (categoryStopwatches.length === 0) {
+      // タイマーがない場合もカテゴリは表示
+      rows.push([categoryName, '', '', '', timestamp]);
+    } else {
+      categoryStopwatches.forEach(stopwatch => {
+        const taskName = stopwatch.taskName || 'タスク名なし';
+        const elapsedTime = stopwatch.formatTime(stopwatch.elapsedSeconds);
+        const targetTime = stopwatch.targetSeconds > 0 
+          ? stopwatch.formatTime(stopwatch.targetSeconds) 
+          : '';
+        
+        rows.push([categoryName, taskName, elapsedTime, targetTime, timestamp]);
+      });
+    }
+  });
+  
+  // カテゴリに属していないタイマー
+  const uncategorizedStopwatches = stopwatches.filter(sw => sw.categoryId === null);
+  uncategorizedStopwatches.forEach(stopwatch => {
+    const taskName = stopwatch.taskName || 'タスク名なし';
+    const elapsedTime = stopwatch.formatTime(stopwatch.elapsedSeconds);
+    const targetTime = stopwatch.targetSeconds > 0 
+      ? stopwatch.formatTime(stopwatch.targetSeconds) 
+      : '';
+    
+    rows.push(['未分類', taskName, elapsedTime, targetTime, timestamp]);
+  });
+  
+  // CSV文字列を生成
+  const csvContent = rows.map(row => 
+    row.map(cell => `"${cell}"`).join(',')
+  ).join('\n');
+  
+  // BOM付きUTF-8でエンコード（Excelで正しく開くため）
+  const bom = '\uFEFF';
+  const csvWithBom = bom + csvContent;
+  
+  // ダウンロード処理
+  const blob = new Blob([csvWithBom], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  
+  // ファイル名（日時を含める）
+  const filename = `stopwatch_${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}.csv`;
+  
+  link.setAttribute('href', url);
+  link.setAttribute('download', filename);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  console.log('CSVファイルを出力しました:', filename);
+}
+
+// CSV出力メニュー
+if (exportCsvMenuItem) {
+  exportCsvMenuItem.addEventListener('click', () => {
+    exportToCsv();
+    dropdownMenu.classList.remove('show');
   });
 }
 
