@@ -45,9 +45,11 @@ function loadAlwaysOnTopSetting() {
   console.log('Always On Top設定を読み込みました:', alwaysOnTop);
 }
 
-// データ保存関数
-function saveData() {
+// データエクスポート関数
+async function exportData() {
   const data = {
+    version: '1.0',
+    exportDate: new Date().toISOString(),
     categories: categories.map(cat => ({
       id: cat.id,
       name: cat.name,
@@ -58,65 +60,115 @@ function saveData() {
       categoryId: sw.categoryId,
       taskName: sw.taskName,
       elapsedSeconds: sw.elapsedSeconds,
-      targetSeconds: sw.targetSeconds,
-      isRunning: false // 保存時は全て停止状態にする
+      targetSeconds: sw.targetSeconds
     })),
     nextCategoryId: nextCategoryId,
     nextStopwatchId: nextStopwatchId
   };
   
-  localStorage.setItem('stopwatchData', JSON.stringify(data));
-  console.log('データを保存しました');
+  const jsonString = JSON.stringify(data, null, 2);
+  const blob = new Blob([jsonString], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  
+  // ファイル名（日時を含める）
+  const now = new Date();
+  const filename = `stopwatch_data_${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}.json`;
+  
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+  
+  console.log('データをエクスポートしました:', filename);
+  alert(`データをエクスポートしました\nファイル名: ${filename}`);
 }
 
-// データ読み込み関数
-function loadData() {
-  const savedData = localStorage.getItem('stopwatchData');
-  if (!savedData) {
-    console.log('保存されたデータがありません');
-    return;
-  }
+// データインポート関数
+function importData() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.style.display = 'none';
   
-  try {
-    const data = JSON.parse(savedData);
+  input.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
     
-    // IDカウンターを復元
-    if (data.nextCategoryId) nextCategoryId = data.nextCategoryId;
-    if (data.nextStopwatchId) nextStopwatchId = data.nextStopwatchId;
-    
-    // カテゴリを復元
-    if (data.categories && data.categories.length > 0) {
-      data.categories.forEach(catData => {
-        const category = new Category(catData.id, catData.name);
-        category.isCollapsed = catData.isCollapsed || false;
-        categories.push(category);
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      
+      // データの検証
+      if (!data.categories || !data.stopwatches) {
+        throw new Error('無効なデータ形式です');
+      }
+      
+      // 確認ダイアログ
+      const confirmMessage = `データをインポートしますか？\n\n` +
+        `カテゴリ: ${data.categories.length}個\n` +
+        `タイマー: ${data.stopwatches.length}個\n\n` +
+        `現在のデータは削除されます。`;
+      
+      if (!confirm(confirmMessage)) {
+        return;
+      }
+      
+      // 既存のタイマーをすべて停止
+      stopwatches.forEach(sw => sw.stop());
+      
+      // データをクリア
+      categories.length = 0;
+      stopwatches.length = 0;
+      
+      // IDカウンターを復元
+      if (data.nextCategoryId) nextCategoryId = data.nextCategoryId;
+      if (data.nextStopwatchId) nextStopwatchId = data.nextStopwatchId;
+      
+      // カテゴリを復元
+      if (data.categories && data.categories.length > 0) {
+        data.categories.forEach(catData => {
+          const category = new Category(catData.id, catData.name);
+          category.isCollapsed = catData.isCollapsed || false;
+          categories.push(category);
+        });
+      }
+      
+      // タイマーを復元
+      if (data.stopwatches && data.stopwatches.length > 0) {
+        data.stopwatches.forEach(swData => {
+          const stopwatch = new Stopwatch(swData.id, swData.categoryId);
+          stopwatch.taskName = swData.taskName || '';
+          stopwatch.elapsedSeconds = swData.elapsedSeconds || 0;
+          stopwatch.targetSeconds = swData.targetSeconds || 0;
+          stopwatches.push(stopwatch);
+        });
+      }
+      
+      // UIをクリアして再構築
+      timersContainer.innerHTML = '';
+      renderCategories();
+      updateDisplays();
+      
+      console.log('データをインポートしました:', {
+        categories: categories.length,
+        stopwatches: stopwatches.length
       });
+      
+      alert(`データをインポートしました\n\nカテゴリ: ${categories.length}個\nタイマー: ${stopwatches.length}個`);
+      
+    } catch (error) {
+      console.error('データのインポートに失敗しました:', error);
+      alert(`データのインポートに失敗しました\n\nエラー: ${error.message}`);
     }
-    
-    // タイマーを復元
-    if (data.stopwatches && data.stopwatches.length > 0) {
-      data.stopwatches.forEach(swData => {
-        const stopwatch = new Stopwatch(swData.id, swData.categoryId);
-        stopwatch.taskName = swData.taskName || '';
-        stopwatch.elapsedSeconds = swData.elapsedSeconds || 0;
-        stopwatch.targetSeconds = swData.targetSeconds || 0;
-        // isRunningは常にfalse（保存時に停止状態にしているため）
-        stopwatches.push(stopwatch);
-      });
-    }
-    
-    console.log('データを読み込みました:', {
-      categories: categories.length,
-      stopwatches: stopwatches.length
-    });
-    
-    // UIを再構築
-    renderCategories();
-    updateDisplays();
-    
-  } catch (error) {
-    console.error('データの読み込みに失敗しました:', error);
-  }
+  });
+  
+  document.body.appendChild(input);
+  input.click();
+  document.body.removeChild(input);
 }
 
 // UIを再構築する関数
@@ -173,7 +225,6 @@ function renderCategories() {
 // 初期化時にURLと設定を読み込む
 loadSlackWebhookUrl();
 loadAlwaysOnTopSetting();
-loadData(); // データを読み込み
 
 const menuBtn = document.getElementById('menuBtn');
 const dropdownMenu = document.getElementById('dropdownMenu');
@@ -181,6 +232,8 @@ const addCategoryMenuItem = document.getElementById('addCategoryMenuItem');
 const addTimerMenuItem = document.getElementById('addTimerMenuItem');
 const setSlackWebhookMenuItem = document.getElementById('setSlackWebhookMenuItem');
 const exportCsvMenuItem = document.getElementById('exportCsvMenuItem');
+const exportDataMenuItem = document.getElementById('exportDataMenuItem');
+const importDataMenuItem = document.getElementById('importDataMenuItem');
 const alwaysOnTopToggle = document.getElementById('alwaysOnTopToggle');
 const opacitySlider = document.getElementById('opacitySlider');
 const opacityValue = document.getElementById('opacityValue');
@@ -265,7 +318,6 @@ class Stopwatch {
       }
       
       this.updateButtons();
-      saveData(); // データを保存
     }
   }
 
@@ -288,7 +340,6 @@ class Stopwatch {
     this.elapsedSeconds = 0;
     this.updateDisplay();
     this.updateButtons();
-    saveData(); // データを保存
   }
 
   updateDisplay() {
@@ -387,8 +438,6 @@ function addStopwatch(categoryId = null, autoEdit = true) {
     }
     timersContainer.appendChild(card);
   }
-  
-  saveData(); // データを保存
 }
 
 // ストップウォッチカードのHTML作成
@@ -610,9 +659,6 @@ function createStopwatchCard(stopwatch, autoEdit = false) {
       
       // 確定ボタンを再生ボタンに戻す
       updateToggleButton();
-      
-      // データを保存
-      saveData();
     }
   };
 
@@ -679,7 +725,6 @@ function removeStopwatch(stopwatchId) {
     }
   }
   
-  saveData(); // データを保存
   updateTotalTime();
 }
 
@@ -816,14 +861,11 @@ function createCategoryContainer(category) {
       collapseIcon.textContent = 'expand_more';
       container.classList.remove('collapsed');
     }
-    
-    saveData(); // データを保存
   });
 
   nameInput.addEventListener('input', (e) => {
     category.name = e.target.value;
     nameDisplay.textContent = e.target.value;
-    saveData(); // データを保存
   });
 
   // カテゴリ編集モードの切り替え関数
@@ -887,8 +929,6 @@ function addCategory() {
 
   const categoryContainer = createCategoryContainer(category);
   timersContainer.appendChild(categoryContainer);
-  
-  saveData(); // データを保存
 }
 
 // カテゴリを削除
@@ -933,8 +973,6 @@ function removeCategory(categoryId) {
     emptyState.textContent = '「カテゴリを追加」からスタート';
     timersContainer.appendChild(emptyState);
   }
-  
-  saveData(); // データを保存
 
   updateTotalTime();
 }
@@ -993,7 +1031,6 @@ function handleCategoryDrop(e) {
     
     // カテゴリ配列の順序も更新
     reorderCategoriesArray();
-    saveData(); // データを保存
   }
   
   return false;
@@ -1055,7 +1092,6 @@ function handleTimerDrop(e) {
     if (timer) {
       timer.categoryId = newCategoryId ? parseInt(newCategoryId) : null;
     }
-    saveData(); // データを保存
   }
   
   return false;
@@ -1277,6 +1313,22 @@ function exportToCsv() {
 if (exportCsvMenuItem) {
   exportCsvMenuItem.addEventListener('click', () => {
     exportToCsv();
+    dropdownMenu.classList.remove('show');
+  });
+}
+
+// データエクスポートメニュー
+if (exportDataMenuItem) {
+  exportDataMenuItem.addEventListener('click', () => {
+    exportData();
+    dropdownMenu.classList.remove('show');
+  });
+}
+
+// データインポートメニュー
+if (importDataMenuItem) {
+  importDataMenuItem.addEventListener('click', () => {
+    importData();
     dropdownMenu.classList.remove('show');
   });
 }
