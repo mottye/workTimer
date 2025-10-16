@@ -370,8 +370,15 @@ function createStopwatchCard(stopwatch) {
   });
 
   clearBtn.addEventListener('click', () => {
-    stopwatch.clear();
-    updateToggleButton();
+    // リセット前に確認ダイアログを表示
+    const taskName = stopwatch.taskName || 'タスク名なし';
+    const timeDisplay = stopwatch.formatTime(stopwatch.elapsedSeconds);
+    const confirmMessage = `「${taskName}」の時間（${timeDisplay}）をリセットしてもよろしいですか？`;
+    
+    if (confirm(confirmMessage)) {
+      stopwatch.clear();
+      updateToggleButton();
+    }
   });
 
   // ドラッグ&ドロップイベント（タイマーカード）
