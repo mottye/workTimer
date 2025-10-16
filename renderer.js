@@ -238,6 +238,13 @@ function removeStopwatch(stopwatchId) {
   const stopwatch = stopwatches.find(t => t.id === stopwatchId);
   if (!stopwatch) return;
 
+  // 確認ダイアログを表示
+  const taskName = stopwatch.taskName || 'タスク名なし';
+  const confirmMessage = `「${taskName}」を削除してもよろしいですか？`;
+  if (!confirm(confirmMessage)) {
+    return; // キャンセルされた場合は削除しない
+  }
+
   const categoryId = stopwatch.categoryId;
   
   const index = stopwatches.findIndex(t => t.id === stopwatchId);
@@ -408,8 +415,22 @@ function addCategory() {
 
 // カテゴリを削除
 function removeCategory(categoryId) {
-  // カテゴリ内のストップウォッチをすべて削除
+  // 確認ダイアログを表示
+  const category = categories.find(c => c.id === categoryId);
+  const categoryName = category ? category.name : 'カテゴリ';
   const categoryStopwatches = stopwatches.filter(sw => sw.categoryId === categoryId);
+  const timerCount = categoryStopwatches.length;
+  
+  let confirmMessage = `「${categoryName}」を削除してもよろしいですか？`;
+  if (timerCount > 0) {
+    confirmMessage += `\n（カテゴリ内の${timerCount}個のタイマーも削除されます）`;
+  }
+  
+  if (!confirm(confirmMessage)) {
+    return; // キャンセルされた場合は削除しない
+  }
+
+  // カテゴリ内のストップウォッチをすべて削除
   categoryStopwatches.forEach(sw => {
     sw.stop();
   });
