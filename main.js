@@ -1,5 +1,6 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
+const fs = require('fs');
 
 let mainWindow;
 
@@ -38,6 +39,29 @@ ipcMain.on('set-always-on-top', (event, alwaysOnTop) => {
   if (mainWindow) {
     mainWindow.setAlwaysOnTop(alwaysOnTop);
     console.log('Always On Top設定を変更しました:', alwaysOnTop);
+  }
+});
+
+// データエクスポート用のIPCハンドラ
+ipcMain.handle('save-data-file', async (event, { data, defaultFilename }) => {
+  const result = await dialog.showSaveDialog(mainWindow, {
+    title: 'データを保存',
+    defaultPath: defaultFilename,
+    filters: [
+      { name: 'JSON Files', extensions: ['json'] },
+      { name: 'All Files', extensions: ['*'] }
+    ]
+  });
+
+  if (result.canceled) {
+    return { success: false, canceled: true };
+  }
+
+  try {
+    fs.writeFileSync(result.filePath, data, 'utf8');
+    return { success: true, filePath: result.filePath };
+  } catch (error) {
+    return { success: false, error: error.message };
   }
 });
 

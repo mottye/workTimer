@@ -67,24 +67,34 @@ async function exportData() {
   };
   
   const jsonString = JSON.stringify(data, null, 2);
-  const blob = new Blob([jsonString], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
   
   // ファイル名（日時を含める）
   const now = new Date();
-  const filename = `stopwatch_data_${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}.json`;
+  const defaultFilename = `stopwatch_data_${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}.json`;
   
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  link.style.visibility = 'hidden';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-  
-  console.log('データをエクスポートしました:', filename);
-  alert(`データをエクスポートしました\nファイル名: ${filename}`);
+  try {
+    // IPCを使って保存ダイアログを表示
+    const result = await ipcRenderer.invoke('save-data-file', {
+      data: jsonString,
+      defaultFilename: defaultFilename
+    });
+    
+    if (result.canceled) {
+      console.log('保存がキャンセルされました');
+      return;
+    }
+    
+    if (result.success) {
+      console.log('データをエクスポートしました:', result.filePath);
+      alert(`データをエクスポートしました\n\n保存先:\n${result.filePath}`);
+    } else {
+      console.error('エクスポートに失敗しました:', result.error);
+      alert(`データのエクスポートに失敗しました\n\nエラー: ${result.error}`);
+    }
+  } catch (error) {
+    console.error('エクスポート中にエラーが発生しました:', error);
+    alert(`データのエクスポート中にエラーが発生しました\n\nエラー: ${error.message}`);
+  }
 }
 
 // データインポート関数
