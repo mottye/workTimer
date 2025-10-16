@@ -7,8 +7,10 @@ let currentRunningStopwatchId = null; // 現在動作中のストップウォッ
 let categories = [];
 let nextCategoryId = 1;
 
-const addTimerBtn = document.getElementById('addTimerBtn');
-const addCategoryBtn = document.getElementById('addCategoryBtn');
+const menuBtn = document.getElementById('menuBtn');
+const dropdownMenu = document.getElementById('dropdownMenu');
+const addCategoryMenuItem = document.getElementById('addCategoryMenuItem');
+const addTimerMenuItem = document.getElementById('addTimerMenuItem');
 const timersContainer = document.getElementById('timersContainer');
 const totalTimeDisplay = document.getElementById('totalTimeDisplay');
 
@@ -596,7 +598,27 @@ function reorderCategoriesArray() {
   categories.push(...newOrder);
 }
 
-// イベントリスナー
-addCategoryBtn.addEventListener('click', addCategory);
-addTimerBtn.addEventListener('click', () => addStopwatch(null));
+// メニューの開閉
+menuBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  dropdownMenu.classList.toggle('hidden');
+});
+
+// メニュー外をクリックしたら閉じる
+document.addEventListener('click', (e) => {
+  if (!dropdownMenu.contains(e.target) && e.target !== menuBtn) {
+    dropdownMenu.classList.add('hidden');
+  }
+});
+
+// メニュー項目のクリックイベント
+addCategoryMenuItem.addEventListener('click', () => {
+  addCategory();
+  dropdownMenu.classList.add('hidden');
+});
+
+addTimerMenuItem.addEventListener('click', () => {
+  addStopwatch(null);
+  dropdownMenu.classList.add('hidden');
+});
 
