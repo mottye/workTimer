@@ -175,22 +175,23 @@ class Stopwatch {
     const card = document.querySelector(`[data-timer-id="${this.id}"]`);
     if (!card) return;
 
-    const startBtn = card.querySelector('.start-btn');
-    const pauseBtn = card.querySelector('.pause-btn');
+    const toggleBtn = card.querySelector('.toggle-btn, .start-btn, .pause-btn');
+    if (!toggleBtn) return;
+
+    const icon = toggleBtn.querySelector('.material-icons');
+    if (!icon) return;
 
     if (this.isRunning && !this.isPaused) {
-      startBtn.disabled = true;
-      pauseBtn.disabled = false;
+      // 実行中：一時停止アイコンを表示
+      icon.textContent = 'pause';
+      toggleBtn.title = '一時停止';
+      toggleBtn.className = 'pause-btn';
       card.classList.add('running'); // ハイライト表示
-    } else if (this.isPaused) {
-      startBtn.disabled = false;
-      startBtn.title = '再開';
-      pauseBtn.disabled = true;
-      card.classList.remove('running'); // ハイライト解除
     } else {
-      startBtn.disabled = false;
-      startBtn.title = 'スタート';
-      pauseBtn.disabled = true;
+      // 停止中：再生アイコンを表示
+      icon.textContent = 'play_arrow';
+      toggleBtn.title = 'スタート';
+      toggleBtn.className = 'start-btn';
       card.classList.remove('running'); // ハイライト解除
     }
   }
