@@ -350,6 +350,91 @@
       font-variant-numeric: tabular-nums;
     }
 
+    /* ダイアログのスタイル */
+    .dialog-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+    }
+
+    .dialog-overlay.hidden {
+      display: none;
+    }
+
+    .dialog-box {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      min-width: 350px;
+      max-width: 90%;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      animation: slideIn 0.2s ease-out;
+    }
+
+    .dialog-title {
+      margin: 0 0 16px 0;
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .dialog-input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 2px solid #e5e7eb;
+      border-radius: 6px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+      box-sizing: border-box;
+    }
+
+    .dialog-input:focus {
+      border-color: #667eea;
+    }
+
+    .dialog-buttons {
+      display: flex;
+      gap: 8px;
+      margin-top: 20px;
+      justify-content: flex-end;
+    }
+
+    .dialog-btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .dialog-btn-cancel {
+      background: #f3f4f6;
+      color: #6b7280;
+    }
+
+    .dialog-btn-cancel:hover {
+      background: #e5e7eb;
+    }
+
+    .dialog-btn-save {
+      background: #667eea;
+      color: white;
+    }
+
+    .dialog-btn-save:hover {
+      background: #5568d3;
+    }
+
     .category-controls {
       position: relative;
       display: flex;
@@ -704,6 +789,18 @@
 
   <div class="timers-container" id="timersContainer">
     <div class="empty-state">「カテゴリを追加」からスタート</div>
+  </div>
+
+  <!-- Slack Webhook URL入力ダイアログ -->
+  <div id="slackWebhookDialog" class="dialog-overlay hidden">
+    <div class="dialog-box">
+      <h3 class="dialog-title">Slack Webhook URL設定</h3>
+      <input type="text" id="slackWebhookInput" class="dialog-input" placeholder="https://hooks.slack.com/services/...">
+      <div class="dialog-buttons">
+        <button id="slackWebhookCancel" class="dialog-btn dialog-btn-cancel">キャンセル</button>
+        <button id="slackWebhookSave" class="dialog-btn dialog-btn-save">保存</button>
+      </div>
+    </div>
   </div>
 
   <script src="renderer.js"></script>

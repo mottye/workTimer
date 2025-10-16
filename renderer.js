@@ -846,27 +846,69 @@ addTimerMenuItem.addEventListener('click', () => {
   dropdownMenu.classList.add('hidden');
 });
 
-// Slack Webhook URL設定
-setSlackWebhookMenuItem.addEventListener('click', () => {
-  const currentUrl = slackWebhookUrl || '';
-  const newUrl = prompt('Slack Webhook URLを入力してください:', currentUrl);
+// Slack Webhook URL設定ダイアログ
+const slackWebhookDialog = document.getElementById('slackWebhookDialog');
+const slackWebhookInput = document.getElementById('slackWebhookInput');
+const slackWebhookSave = document.getElementById('slackWebhookSave');
+const slackWebhookCancel = document.getElementById('slackWebhookCancel');
+
+// ダイアログを開く
+function openSlackWebhookDialog() {
+  slackWebhookInput.value = slackWebhookUrl || '';
+  slackWebhookDialog.classList.remove('hidden');
+  slackWebhookInput.focus();
+  dropdownMenu.classList.add('hidden');
+}
+
+// ダイアログを閉じる
+function closeSlackWebhookDialog() {
+  slackWebhookDialog.classList.add('hidden');
+  slackWebhookInput.value = '';
+}
+
+// Slack Webhook URL設定メニュー
+if (setSlackWebhookMenuItem) {
+  setSlackWebhookMenuItem.addEventListener('click', () => {
+    openSlackWebhookDialog();
+  });
+}
+
+// 保存ボタン
+slackWebhookSave.addEventListener('click', () => {
+  const newUrl = slackWebhookInput.value.trim();
   
-  if (newUrl !== null) {
-    // キャンセルされていない場合
-    if (newUrl.trim() === '') {
-      // 空文字の場合は削除
-      slackWebhookUrl = null;
-      localStorage.removeItem('slackWebhookUrl');
-      alert('Slack Webhook URLを削除しました。');
-    } else {
-      // URLを保存
-      slackWebhookUrl = newUrl.trim();
-      localStorage.setItem('slackWebhookUrl', slackWebhookUrl);
-      alert('Slack Webhook URLを保存しました。');
-    }
+  if (newUrl === '') {
+    // 空文字の場合は削除
+    slackWebhookUrl = null;
+    localStorage.removeItem('slackWebhookUrl');
+    console.log('Slack Webhook URLを削除しました');
+  } else {
+    // URLを保存
+    slackWebhookUrl = newUrl;
+    localStorage.setItem('slackWebhookUrl', slackWebhookUrl);
+    console.log('Slack Webhook URLを保存しました:', slackWebhookUrl);
   }
   
-  dropdownMenu.classList.add('hidden');
+  closeSlackWebhookDialog();
+});
+
+// キャンセルボタン
+slackWebhookCancel.addEventListener('click', () => {
+  closeSlackWebhookDialog();
+});
+
+// オーバーレイクリックで閉じる
+slackWebhookDialog.addEventListener('click', (e) => {
+  if (e.target === slackWebhookDialog) {
+    closeSlackWebhookDialog();
+  }
+});
+
+// Enterキーで保存
+slackWebhookInput.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') {
+    slackWebhookSave.click();
+  }
 });
 
 // 透明度スライダーのイベント
