@@ -29,6 +29,13 @@
       padding-top: 8px;
     }
 
+    .total-time-container {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2px;
+    }
+
     .total-time-display {
       font-size: 36px;
       font-weight: bold;
@@ -36,6 +43,14 @@
       font-variant-numeric: tabular-nums;
       letter-spacing: 2px;
       text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .target-total-display {
+      font-size: 12px;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.8);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 1px;
     }
 
     .header-buttons {
@@ -625,7 +640,10 @@
 </head>
 <body>
   <div class="header">
-    <div class="total-time-display" id="totalTimeDisplay">00:00:00</div>
+    <div class="total-time-container">
+      <div class="total-time-display" id="totalTimeDisplay">00:00:00</div>
+      <div class="target-total-display" id="targetTotalDisplay">目標: --:--:--</div>
+    </div>
     <div class="header-buttons">
       <button id="menuBtn" title="メニュー" class="menu-btn">
         <span class="material-icons">more_vert</span>

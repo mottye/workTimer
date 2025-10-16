@@ -22,6 +22,7 @@ const opacitySlider = document.getElementById('opacitySlider');
 const opacityValue = document.getElementById('opacityValue');
 const timersContainer = document.getElementById('timersContainer');
 const totalTimeDisplay = document.getElementById('totalTimeDisplay');
+const targetTotalDisplay = document.getElementById('targetTotalDisplay');
 
 // カテゴリクラス
 class Category {
@@ -277,6 +278,7 @@ function createStopwatchCard(stopwatch) {
   const updateTargetTime = () => {
     stopwatch.setTargetTime(targetHours.value, targetMinutes.value, targetSeconds.value);
     updateTimerDisplay();
+    updateTargetTotalTime();
   };
   
   targetHours.addEventListener('input', updateTargetTime);
@@ -370,6 +372,22 @@ function updateTotalTime() {
   const totalSeconds = stopwatches.reduce((sum, sw) => sum + sw.elapsedSeconds, 0);
   if (totalTimeDisplay) {
     totalTimeDisplay.textContent = formatTime(totalSeconds);
+  }
+  updateTargetTotalTime();
+}
+
+// 目標時間の合計を更新
+function updateTargetTotalTime() {
+  const targetTotalSeconds = stopwatches.reduce((sum, sw) => {
+    return sum + (sw.targetSeconds || 0);
+  }, 0);
+  
+  if (targetTotalDisplay) {
+    if (targetTotalSeconds > 0) {
+      targetTotalDisplay.textContent = `目標: ${formatTime(targetTotalSeconds)}`;
+    } else {
+      targetTotalDisplay.textContent = '目標: --:--:--';
+    }
   }
 }
 
