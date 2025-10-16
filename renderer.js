@@ -265,6 +265,7 @@ const setSlackWebhookMenuItem = document.getElementById('setSlackWebhookMenuItem
 const exportCsvMenuItem = document.getElementById('exportCsvMenuItem');
 const exportDataMenuItem = document.getElementById('exportDataMenuItem');
 const importDataMenuItem = document.getElementById('importDataMenuItem');
+const sendSlackNotificationMenuItem = document.getElementById('sendSlackNotificationMenuItem');
 const alwaysOnTopToggle = document.getElementById('alwaysOnTopToggle');
 const opacitySlider = document.getElementById('opacitySlider');
 const opacityValue = document.getElementById('opacityValue');
@@ -1360,6 +1361,130 @@ if (exportDataMenuItem) {
 if (importDataMenuItem) {
   importDataMenuItem.addEventListener('click', () => {
     importData();
+    dropdownMenu.classList.remove('show');
+  });
+}
+
+// Slack通知を送信する関数
+async function sendSlackNotification() {
+  // Slack Webhook URLが設定されているか確認
+  if (!slackWebhookUrl) {
+    alert('Slack Webhook URLが設定されていません。\n\nメインメニューから「Slack WebhookURLを追加」で設定してください。');
+    return;
+  }
+  
+  // Slack通知が有効になっているか確認
+  if (!slackWebhookEnabled) {
+    alert('Slack通知が無効になっています。\n\nメインメニューの「Slack WebhookURLを追加」から有効にしてください。');
+    return;
+  }
+  
+  // データが空の場合
+  if (stopwatches.length === 0) {
+    alert('送信するタイマーデータがありません。');
+    return;
+  }
+  
+  try {
+    // マークダウン形式でメッセージを作成
+    let message = '*⏱️ ストップウォッチレポート*\n\n';
+    
+    // 合計時間を計算
+    const totalSeconds = stopwatches.reduce((sum, sw) => sum + sw.elapsedSeconds, 0);
+    const totalTargetSeconds = stopwatches.reduce((sum, sw) => sum + (sw.targetSeconds || 0), 0);
+    message += `*合計時間:* ${formatTimeForSlack(totalSeconds)}\n`;
+    if (totalTargetSeconds > 0) {
+      message += `*合計目標時間:* ${formatTimeForSlack(totalTargetSeconds)}\n`;
+    }
+    message += '\n---\n\n';
+    
+    // カテゴリごとにタイマーを表示
+    if (categories.length > 0) {
+      categories.forEach(category => {
+        const categoryStopwatches = stopwatches.filter(sw => sw.categoryId === category.id);
+        if (categoryStopwatches.length > 0) {
+          message += `*📁 ${category.name}*\n`;
+          
+          categoryStopwatches.forEach(sw => {
+            const taskName = sw.taskName || 'タスク名なし';
+            const elapsed = formatTimeForSlack(sw.elapsedSeconds);
+            let line = `  • ${taskName}: ${elapsed}`;
+            
+            if (sw.targetSeconds && sw.targetSeconds > 0) {
+              const target = formatTimeForSlack(sw.targetSeconds);
+              line += ` / ${target}`;
+              if (sw.elapsedSeconds >= sw.targetSeconds) {
+                line += ' ✅';
+              }
+            }
+            
+            message += line + '\n';
+          });
+          
+          message += '\n';
+        }
+      });
+    }
+    
+    // カテゴリなしのタイマー
+    const uncategorizedStopwatches = stopwatches.filter(sw => !sw.categoryId);
+    if (uncategorizedStopwatches.length > 0) {
+      message += '*📝 未分類*\n';
+      
+      uncategorizedStopwatches.forEach(sw => {
+        const taskName = sw.taskName || 'タスク名なし';
+        const elapsed = formatTimeForSlack(sw.elapsedSeconds);
+        let line = `  • ${taskName}: ${elapsed}`;
+        
+        if (sw.targetSeconds && sw.targetSeconds > 0) {
+          const target = formatTimeForSlack(sw.targetSeconds);
+          line += ` / ${target}`;
+          if (sw.elapsedSeconds >= sw.targetSeconds) {
+            line += ' ✅';
+          }
+        }
+        
+        message += line + '\n';
+      });
+    }
+    
+    // Slackに送信
+    const response = await fetch(slackWebhookUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        text: message
+      })
+    });
+    
+    if (response.ok) {
+      alert('✅ Slackに通知を送信しました！');
+      console.log('Slack通知を送信しました');
+    } else {
+      throw new Error(`HTTP Error: ${response.status}`);
+    }
+    
+  } catch (error) {
+    console.error('Slack通知の送信に失敗しました:', error);
+    alert(`❌ Slack通知の送信に失敗しました\n\nエラー: ${error.message}\n\nWebhook URLを確認してください。`);
+  }
+}
+
+// Slack用の時間フォーマット関数
+function formatTimeForSlack(totalSeconds) {
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
+// Slack通知メニュー
+if (sendSlackNotificationMenuItem) {
+  sendSlackNotificationMenuItem.addEventListener('click', () => {
+    sendSlackNotification();
     dropdownMenu.classList.remove('show');
   });
 }
