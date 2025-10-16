@@ -130,6 +130,9 @@ function importData() {
       // 既存のタイマーをすべて停止
       stopwatches.forEach(sw => sw.stop());
       
+      // 現在動作中のストップウォッチIDをクリア
+      currentRunningStopwatchId = null;
+      
       // データをクリア
       categories.length = 0;
       stopwatches.length = 0;
@@ -161,6 +164,17 @@ function importData() {
       // UIをクリアして再構築
       timersContainer.innerHTML = '';
       renderCategories();
+      
+      // 全てのカードから running クラスを削除（念のため）
+      document.querySelectorAll('.timer-card').forEach(card => {
+        card.classList.remove('running');
+      });
+      
+      // 全てのタイマーのボタン表示を更新
+      stopwatches.forEach(sw => {
+        sw.updateButtons();
+      });
+      
       updateTotalTime();
       updateTargetTotalTime();
       updateAllCategoryTimes();
