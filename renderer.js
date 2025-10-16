@@ -270,15 +270,19 @@ function createStopwatchCard(stopwatch) {
   card.innerHTML = `
     <div class="task-name-container">
       <span class="drag-handle-small" title="ドラッグして移動">⋮⋮</span>
-      <input type="text" class="task-name-input" placeholder="タスク名" value="" readonly>
+      <span class="task-name-display">タスク名なし</span>
+      <input type="text" class="task-name-input hidden" placeholder="タスク名" value="">
     </div>
     <div class="target-time-container">
       <span class="target-label">目標:</span>
-      <input type="number" class="target-input target-hours" placeholder="時" min="0" max="99" value="" readonly>
-      <span class="target-separator">:</span>
-      <input type="number" class="target-input target-minutes" placeholder="分" min="0" max="59" value="" readonly>
-      <span class="target-separator">:</span>
-      <input type="number" class="target-input target-seconds" placeholder="秒" min="0" max="59" value="" readonly>
+      <span class="target-display">--:--:--</span>
+      <div class="target-input-group hidden">
+        <input type="number" class="target-input target-hours" placeholder="時" min="0" max="99" value="">
+        <span class="target-separator">:</span>
+        <input type="number" class="target-input target-minutes" placeholder="分" min="0" max="59" value="">
+        <span class="target-separator">:</span>
+        <input type="number" class="target-input target-seconds" placeholder="秒" min="0" max="59" value="">
+      </div>
     </div>
     <div class="timer-main-row">
       <div class="timer-display">${stopwatch.formatTime(stopwatch.elapsedSeconds)}</div>
@@ -294,7 +298,10 @@ function createStopwatchCard(stopwatch) {
   // イベントリスナーを追加
   const deleteBtn = card.querySelector('.delete-btn');
   const editBtn = card.querySelector('.edit-btn');
+  const taskNameDisplay = card.querySelector('.task-name-display');
   const taskNameInput = card.querySelector('.task-name-input');
+  const targetDisplay = card.querySelector('.target-display');
+  const targetInputGroup = card.querySelector('.target-input-group');
   const targetHours = card.querySelector('.target-hours');
   const targetMinutes = card.querySelector('.target-minutes');
   const targetSeconds = card.querySelector('.target-seconds');
@@ -304,6 +311,22 @@ function createStopwatchCard(stopwatch) {
   
   // 編集モードの状態
   let isEditing = false;
+  
+  // 表示を更新する関数
+  const updateDisplays = () => {
+    // タスク名の表示を更新
+    taskNameDisplay.textContent = stopwatch.taskName || 'タスク名なし';
+    
+    // 目標時間の表示を更新
+    if (stopwatch.targetSeconds !== null && stopwatch.targetSeconds > 0) {
+      targetDisplay.textContent = stopwatch.formatTime(stopwatch.targetSeconds);
+    } else {
+      targetDisplay.textContent = '--:--:--';
+    }
+  };
+  
+  // 初期表示を更新
+  updateDisplays();
 
   // 削除ボタンイベント
   deleteBtn.addEventListener('click', () => {
@@ -313,6 +336,7 @@ function createStopwatchCard(stopwatch) {
   // タスク名の変更
   taskNameInput.addEventListener('input', (e) => {
     stopwatch.setTaskName(e.target.value);
+    updateDisplays();
   });
 
   // 目標時間の入力イベント
@@ -321,6 +345,7 @@ function createStopwatchCard(stopwatch) {
     updateTimerDisplay();
     updateTargetTotalTime();
     updateCategoryTime(stopwatch.categoryId);
+    updateDisplays();
   };
   
   targetHours.addEventListener('input', updateTargetTime);
@@ -391,11 +416,26 @@ function createStopwatchCard(stopwatch) {
     isEditing = !isEditing;
     
     if (isEditing) {
-      // 編集モードON
-      taskNameInput.removeAttribute('readonly');
-      targetHours.removeAttribute('readonly');
-      targetMinutes.removeAttribute('readonly');
-      targetSeconds.removeAttribute('readonly');
+      // 編集モードON: inputを表示、displayを非表示
+      taskNameDisplay.classList.add('hidden');
+      taskNameInput.classList.remove('hidden');
+      targetDisplay.classList.add('hidden');
+      targetInputGroup.classList.remove('hidden');
+      
+      // inputの値を設定
+      taskNameInput.value = stopwatch.taskName || '';
+      if (stopwatch.targetSeconds !== null) {
+        const hours = Math.floor(stopwatch.targetSeconds / 3600);
+        const minutes = Math.floor((stopwatch.targetSeconds % 3600) / 60);
+        const seconds = stopwatch.targetSeconds % 60;
+        targetHours.value = hours > 0 ? hours : '';
+        targetMinutes.value = minutes > 0 ? minutes : '';
+        targetSeconds.value = seconds > 0 ? seconds : '';
+      } else {
+        targetHours.value = '';
+        targetMinutes.value = '';
+        targetSeconds.value = '';
+      }
       
       taskNameInput.focus();
       
@@ -405,11 +445,14 @@ function createStopwatchCard(stopwatch) {
       editBtn.title = '完了';
       editBtn.classList.add('edit-active');
     } else {
-      // 編集モードOFF
-      taskNameInput.setAttribute('readonly', 'readonly');
-      targetHours.setAttribute('readonly', 'readonly');
-      targetMinutes.setAttribute('readonly', 'readonly');
-      targetSeconds.setAttribute('readonly', 'readonly');
+      // 編集モードOFF: displayを表示、inputを非表示
+      taskNameDisplay.classList.remove('hidden');
+      taskNameInput.classList.add('hidden');
+      targetDisplay.classList.remove('hidden');
+      targetInputGroup.classList.add('hidden');
+      
+      // 表示を更新
+      updateDisplays();
       
       // ボタンの表示を変更
       const icon = editBtn.querySelector('.material-icons');
@@ -564,7 +607,8 @@ function createCategoryContainer(category) {
       <span class="drag-handle" title="ドラッグして移動">⋮⋮</span>
       <div class="category-info">
         <div class="category-name-wrapper">
-          <input type="text" class="category-name-input" value="${category.name}" placeholder="カテゴリ名" readonly>
+          <span class="category-name-display">${category.name}</span>
+          <input type="text" class="category-name-input hidden" value="${category.name}" placeholder="カテゴリ名">
           <button class="category-edit-btn" title="編集"><span class="material-icons">edit</span></button>
         </div>
         <div class="category-time-summary">
@@ -597,6 +641,7 @@ function createCategoryContainer(category) {
   const collapseBtn = container.querySelector('.collapse-btn');
   const collapseIcon = container.querySelector('.collapse-icon');
   const categoryTimers = container.querySelector('.category-timers');
+  const nameDisplay = container.querySelector('.category-name-display');
   const nameInput = container.querySelector('.category-name-input');
   const categoryEditBtn = container.querySelector('.category-edit-btn');
   const categoryMenuBtn = container.querySelector('.category-menu-btn');
@@ -625,6 +670,7 @@ function createCategoryContainer(category) {
 
   nameInput.addEventListener('input', (e) => {
     category.name = e.target.value;
+    nameDisplay.textContent = e.target.value;
   });
 
   // カテゴリ編集ボタンイベント
@@ -633,8 +679,10 @@ function createCategoryContainer(category) {
     isCategoryEditing = !isCategoryEditing;
     
     if (isCategoryEditing) {
-      // 編集モードON
-      nameInput.removeAttribute('readonly');
+      // 編集モードON: inputを表示、displayを非表示
+      nameDisplay.classList.add('hidden');
+      nameInput.classList.remove('hidden');
+      nameInput.value = category.name;
       nameInput.focus();
       nameInput.select();
       
@@ -644,8 +692,10 @@ function createCategoryContainer(category) {
       categoryEditBtn.title = '完了';
       categoryEditBtn.classList.add('edit-active');
     } else {
-      // 編集モードOFF
-      nameInput.setAttribute('readonly', 'readonly');
+      // 編集モードOFF: displayを表示、inputを非表示
+      nameDisplay.classList.remove('hidden');
+      nameInput.classList.add('hidden');
+      nameDisplay.textContent = category.name;
       
       // ボタンの表示を変更
       const icon = categoryEditBtn.querySelector('.material-icons');

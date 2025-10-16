@@ -876,36 +876,47 @@
       background: #059669;
     }
 
-    /* readonly状態の入力フィールド */
-    input[readonly] {
-      cursor: default;
-      background: #f9fafb;
-      border-color: #e5e7eb;
+    /* テキスト表示用のスタイル */
+    .task-name-display, .category-name-display, .target-display {
+      display: inline-block;
+      padding: 6px 10px;
+      font-size: 13px;
+      color: #333;
     }
 
-    input[readonly]:focus {
-      border-color: #e5e7eb;
-      background: #f9fafb;
+    .task-name-display {
+      flex: 1;
+      color: #6b7280;
     }
 
-    .task-name-input:not([readonly]) {
-      background: white;
-      cursor: text;
+    .target-display {
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.5px;
+      color: #666;
+      font-size: 12px;
     }
 
-    .target-input:not([readonly]) {
-      background: white;
-      cursor: text;
+    .category-name-display {
+      font-size: 14px;
+      font-weight: bold;
+      color: white;
+      padding: 5px 10px;
+    }
+
+    .target-input-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .hidden {
+      display: none !important;
     }
 
     .category-name-wrapper {
       display: flex;
       align-items: center;
       gap: 4px;
-    }
-
-    .category-name-input[readonly] {
-      cursor: default;
     }
 
     .category-edit-btn {
