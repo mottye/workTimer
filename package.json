@@ -1,0 +1,17 @@
+{
+  "name": "timer-app",
+  "version": "1.0.0",
+  "description": "Simple timer application built with Electron",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron ."
+  },
+  "keywords": ["timer", "electron"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^27.0.0"
+  }
+}
+
