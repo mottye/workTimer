@@ -282,8 +282,7 @@ function createStopwatchCard(stopwatch) {
     <div class="timer-main-row">
       <div class="timer-display">${stopwatch.formatTime(stopwatch.elapsedSeconds)}</div>
       <div class="timer-controls">
-        <button class="start-btn" title="スタート"><span class="material-icons">play_arrow</span></button>
-        <button class="pause-btn" title="一時停止" disabled><span class="material-icons">pause</span></button>
+        <button class="toggle-btn" title="スタート"><span class="material-icons">play_arrow</span></button>
         <button class="clear-btn" title="クリア"><span class="material-icons">refresh</span></button>
         <button class="delete-btn" title="削除"><span class="material-icons">delete</span></button>
       </div>
@@ -296,8 +295,7 @@ function createStopwatchCard(stopwatch) {
   const targetHours = card.querySelector('.target-hours');
   const targetMinutes = card.querySelector('.target-minutes');
   const targetSeconds = card.querySelector('.target-seconds');
-  const startBtn = card.querySelector('.start-btn');
-  const pauseBtn = card.querySelector('.pause-btn');
+  const toggleBtn = card.querySelector('.toggle-btn');
   const clearBtn = card.querySelector('.clear-btn');
   const timerDisplay = card.querySelector('.timer-display');
 
@@ -342,10 +340,38 @@ function createStopwatchCard(stopwatch) {
   // 初回表示更新
   updateTimerDisplay();
 
+  // トグルボタンの表示を更新
+  const updateToggleButton = () => {
+    const icon = toggleBtn.querySelector('.material-icons');
+    if (stopwatch.isRunning && !stopwatch.isPaused) {
+      // 実行中：一時停止アイコンを表示
+      icon.textContent = 'pause';
+      toggleBtn.title = '一時停止';
+      toggleBtn.className = 'pause-btn';
+    } else {
+      // 停止中：再生アイコンを表示
+      icon.textContent = 'play_arrow';
+      toggleBtn.title = 'スタート';
+      toggleBtn.className = 'start-btn';
+    }
+  };
+
   // ボタンイベント
-  startBtn.addEventListener('click', () => stopwatch.start());
-  pauseBtn.addEventListener('click', () => stopwatch.pause());
-  clearBtn.addEventListener('click', () => stopwatch.clear());
+  toggleBtn.addEventListener('click', () => {
+    if (stopwatch.isRunning && !stopwatch.isPaused) {
+      // 実行中なら一時停止
+      stopwatch.pause();
+    } else {
+      // 停止中なら開始
+      stopwatch.start();
+    }
+    updateToggleButton();
+  });
+
+  clearBtn.addEventListener('click', () => {
+    stopwatch.clear();
+    updateToggleButton();
+  });
 
   // ドラッグ&ドロップイベント（タイマーカード）
   card.addEventListener('dragstart', handleTimerDragStart);
