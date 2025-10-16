@@ -161,7 +161,9 @@ function importData() {
       // UIをクリアして再構築
       timersContainer.innerHTML = '';
       renderCategories();
-      updateDisplays();
+      updateTotalTime();
+      updateTargetTotalTime();
+      updateAllCategoryTimes();
       
       console.log('データをインポートしました:', {
         categories: categories.length,
