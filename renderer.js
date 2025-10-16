@@ -1432,11 +1432,11 @@ async function sendSlackNotificationSchedule() {
   
   try {
     // マークダウン形式でメッセージを作成
-    let message = '*本日の予定*';
+    let message = '*本日の予定';
     if (slackUsername) {
-      message += ` - ${slackUsername}`;
+      message += `（${slackUsername}）`;
     }
-    message += '\n\n';
+    message += '*\n\n';
     
     // カテゴリごとにタイマーを表示
     if (categories.length > 0) {
@@ -1524,11 +1524,11 @@ async function sendSlackNotificationActual() {
   
   try {
     // マークダウン形式でメッセージを作成
-    let message = '*本日の実績*';
+    let message = '*本日の実績';
     if (slackUsername) {
-      message += ` - ${slackUsername}`;
+      message += `（${slackUsername}）`;
     }
-    message += '\n\n';
+    message += '*\n\n';
     
     // カテゴリごとにタイマーを表示
     if (categories.length > 0) {
