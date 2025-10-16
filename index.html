@@ -859,6 +859,88 @@
       background: #4b5563;
     }
 
+    .edit-btn {
+      background: #3b82f6;
+      color: white;
+    }
+
+    .edit-btn:hover:not(:disabled) {
+      background: #2563eb;
+    }
+
+    .edit-btn.edit-active {
+      background: #10b981;
+    }
+
+    .edit-btn.edit-active:hover:not(:disabled) {
+      background: #059669;
+    }
+
+    /* readonly状態の入力フィールド */
+    input[readonly] {
+      cursor: default;
+      background: #f9fafb;
+      border-color: #e5e7eb;
+    }
+
+    input[readonly]:focus {
+      border-color: #e5e7eb;
+      background: #f9fafb;
+    }
+
+    .task-name-input:not([readonly]) {
+      background: white;
+      cursor: text;
+    }
+
+    .target-input:not([readonly]) {
+      background: white;
+      cursor: text;
+    }
+
+    .category-name-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .category-name-input[readonly] {
+      cursor: default;
+    }
+
+    .category-edit-btn {
+      width: 20px;
+      height: 20px;
+      padding: 0;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255, 255, 255, 0.9);
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+
+    .category-edit-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: scale(1.1);
+    }
+
+    .category-edit-btn .material-icons {
+      font-size: 14px;
+    }
+
+    .category-edit-btn.edit-active {
+      background: rgba(16, 185, 129, 0.8);
+    }
+
+    .category-edit-btn.edit-active:hover {
+      background: rgba(16, 185, 129, 1);
+    }
+
     .empty-state {
       text-align: center;
       color: white;

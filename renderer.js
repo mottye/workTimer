@@ -270,21 +270,22 @@ function createStopwatchCard(stopwatch) {
   card.innerHTML = `
     <div class="task-name-container">
       <span class="drag-handle-small" title="ドラッグして移動">⋮⋮</span>
-      <input type="text" class="task-name-input" placeholder="タスク名" value="">
+      <input type="text" class="task-name-input" placeholder="タスク名" value="" readonly>
     </div>
     <div class="target-time-container">
       <span class="target-label">目標:</span>
-      <input type="number" class="target-input target-hours" placeholder="時" min="0" max="99" value="">
+      <input type="number" class="target-input target-hours" placeholder="時" min="0" max="99" value="" readonly>
       <span class="target-separator">:</span>
-      <input type="number" class="target-input target-minutes" placeholder="分" min="0" max="59" value="">
+      <input type="number" class="target-input target-minutes" placeholder="分" min="0" max="59" value="" readonly>
       <span class="target-separator">:</span>
-      <input type="number" class="target-input target-seconds" placeholder="秒" min="0" max="59" value="">
+      <input type="number" class="target-input target-seconds" placeholder="秒" min="0" max="59" value="" readonly>
     </div>
     <div class="timer-main-row">
       <div class="timer-display">${stopwatch.formatTime(stopwatch.elapsedSeconds)}</div>
       <div class="timer-controls">
         <button class="toggle-btn" title="スタート"><span class="material-icons">play_arrow</span></button>
         <button class="clear-btn" title="クリア"><span class="material-icons">refresh</span></button>
+        <button class="edit-btn" title="編集"><span class="material-icons">edit</span></button>
         <button class="delete-btn" title="削除"><span class="material-icons">delete</span></button>
       </div>
     </div>
@@ -292,6 +293,7 @@ function createStopwatchCard(stopwatch) {
 
   // イベントリスナーを追加
   const deleteBtn = card.querySelector('.delete-btn');
+  const editBtn = card.querySelector('.edit-btn');
   const taskNameInput = card.querySelector('.task-name-input');
   const targetHours = card.querySelector('.target-hours');
   const targetMinutes = card.querySelector('.target-minutes');
@@ -299,6 +301,9 @@ function createStopwatchCard(stopwatch) {
   const toggleBtn = card.querySelector('.toggle-btn');
   const clearBtn = card.querySelector('.clear-btn');
   const timerDisplay = card.querySelector('.timer-display');
+  
+  // 編集モードの状態
+  let isEditing = false;
 
   // 削除ボタンイベント
   deleteBtn.addEventListener('click', () => {
@@ -378,6 +383,39 @@ function createStopwatchCard(stopwatch) {
     if (confirm(confirmMessage)) {
       stopwatch.clear();
       updateToggleButton();
+    }
+  });
+
+  // 編集ボタンイベント
+  editBtn.addEventListener('click', () => {
+    isEditing = !isEditing;
+    
+    if (isEditing) {
+      // 編集モードON
+      taskNameInput.removeAttribute('readonly');
+      targetHours.removeAttribute('readonly');
+      targetMinutes.removeAttribute('readonly');
+      targetSeconds.removeAttribute('readonly');
+      
+      taskNameInput.focus();
+      
+      // ボタンの表示を変更
+      const icon = editBtn.querySelector('.material-icons');
+      icon.textContent = 'check';
+      editBtn.title = '完了';
+      editBtn.classList.add('edit-active');
+    } else {
+      // 編集モードOFF
+      taskNameInput.setAttribute('readonly', 'readonly');
+      targetHours.setAttribute('readonly', 'readonly');
+      targetMinutes.setAttribute('readonly', 'readonly');
+      targetSeconds.setAttribute('readonly', 'readonly');
+      
+      // ボタンの表示を変更
+      const icon = editBtn.querySelector('.material-icons');
+      icon.textContent = 'edit';
+      editBtn.title = '編集';
+      editBtn.classList.remove('edit-active');
     }
   });
 
@@ -525,7 +563,10 @@ function createCategoryContainer(category) {
       </button>
       <span class="drag-handle" title="ドラッグして移動">⋮⋮</span>
       <div class="category-info">
-        <input type="text" class="category-name-input" value="${category.name}" placeholder="カテゴリ名">
+        <div class="category-name-wrapper">
+          <input type="text" class="category-name-input" value="${category.name}" placeholder="カテゴリ名" readonly>
+          <button class="category-edit-btn" title="編集"><span class="material-icons">edit</span></button>
+        </div>
         <div class="category-time-summary">
           <span class="category-elapsed-time">00:00:00</span>
           <span class="category-target-time">/ --:--:--</span>
@@ -557,10 +598,14 @@ function createCategoryContainer(category) {
   const collapseIcon = container.querySelector('.collapse-icon');
   const categoryTimers = container.querySelector('.category-timers');
   const nameInput = container.querySelector('.category-name-input');
+  const categoryEditBtn = container.querySelector('.category-edit-btn');
   const categoryMenuBtn = container.querySelector('.category-menu-btn');
   const categoryDropdownMenu = container.querySelector('.category-dropdown-menu');
   const categoryAddTimerItem = container.querySelector('.category-add-timer-item');
   const categoryDeleteItem = container.querySelector('.category-delete-item');
+  
+  // カテゴリ編集モードの状態
+  let isCategoryEditing = false;
 
   // 折りたたみボタン
   collapseBtn.addEventListener('click', (e) => {
@@ -580,6 +625,34 @@ function createCategoryContainer(category) {
 
   nameInput.addEventListener('input', (e) => {
     category.name = e.target.value;
+  });
+
+  // カテゴリ編集ボタンイベント
+  categoryEditBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    isCategoryEditing = !isCategoryEditing;
+    
+    if (isCategoryEditing) {
+      // 編集モードON
+      nameInput.removeAttribute('readonly');
+      nameInput.focus();
+      nameInput.select();
+      
+      // ボタンの表示を変更
+      const icon = categoryEditBtn.querySelector('.material-icons');
+      icon.textContent = 'check';
+      categoryEditBtn.title = '完了';
+      categoryEditBtn.classList.add('edit-active');
+    } else {
+      // 編集モードOFF
+      nameInput.setAttribute('readonly', 'readonly');
+      
+      // ボタンの表示を変更
+      const icon = categoryEditBtn.querySelector('.material-icons');
+      icon.textContent = 'edit';
+      categoryEditBtn.title = '編集';
+      categoryEditBtn.classList.remove('edit-active');
+    }
   });
 
   // カテゴリメニューの開閉
