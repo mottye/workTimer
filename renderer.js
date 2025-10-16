@@ -7,6 +7,10 @@ let currentRunningStopwatchId = null; // 現在動作中のストップウォッ
 let categories = [];
 let nextCategoryId = 1;
 
+// Slack Webhook URL を保存する変数
+let slackWebhookUrl = null;
+let slackWebhookEnabled = false; // Slack通知の有効/無効
+
 const { ipcRenderer } = require('electron');
 
 // 通知の許可をリクエスト
@@ -20,6 +24,12 @@ function loadSlackWebhookUrl() {
   if (savedUrl) {
     slackWebhookUrl = savedUrl;
     console.log('Slack Webhook URLを読み込みました:', slackWebhookUrl);
+  }
+  
+  const savedEnabled = localStorage.getItem('slackWebhookEnabled');
+  if (savedEnabled !== null) {
+    slackWebhookEnabled = savedEnabled === 'true';
+    console.log('Slack Webhook有効状態を読み込みました:', slackWebhookEnabled);
   }
 }
 
@@ -36,9 +46,6 @@ const opacityValue = document.getElementById('opacityValue');
 const timersContainer = document.getElementById('timersContainer');
 const totalTimeDisplay = document.getElementById('totalTimeDisplay');
 const targetTotalDisplay = document.getElementById('targetTotalDisplay');
-
-// Slack Webhook URL を保存する変数
-let slackWebhookUrl = null;
 
 // カテゴリクラス
 class Category {
@@ -849,12 +856,14 @@ addTimerMenuItem.addEventListener('click', () => {
 // Slack Webhook URL設定ダイアログ
 const slackWebhookDialog = document.getElementById('slackWebhookDialog');
 const slackWebhookInput = document.getElementById('slackWebhookInput');
+const slackWebhookEnabledCheckbox = document.getElementById('slackWebhookEnabled');
 const slackWebhookSave = document.getElementById('slackWebhookSave');
 const slackWebhookCancel = document.getElementById('slackWebhookCancel');
 
 // ダイアログを開く
 function openSlackWebhookDialog() {
   slackWebhookInput.value = slackWebhookUrl || '';
+  slackWebhookEnabledCheckbox.checked = slackWebhookEnabled;
   slackWebhookDialog.classList.remove('hidden');
   slackWebhookInput.focus();
   dropdownMenu.classList.add('hidden');
@@ -876,6 +885,7 @@ if (setSlackWebhookMenuItem) {
 // 保存ボタン
 slackWebhookSave.addEventListener('click', () => {
   const newUrl = slackWebhookInput.value.trim();
+  const isEnabled = slackWebhookEnabledCheckbox.checked;
   
   if (newUrl === '') {
     // 空文字の場合は削除
@@ -888,6 +898,11 @@ slackWebhookSave.addEventListener('click', () => {
     localStorage.setItem('slackWebhookUrl', slackWebhookUrl);
     console.log('Slack Webhook URLを保存しました:', slackWebhookUrl);
   }
+  
+  // 有効/無効の状態を保存
+  slackWebhookEnabled = isEnabled;
+  localStorage.setItem('slackWebhookEnabled', slackWebhookEnabled.toString());
+  console.log('Slack Webhook有効状態を保存しました:', slackWebhookEnabled);
   
   closeSlackWebhookDialog();
 });

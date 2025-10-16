@@ -372,7 +372,7 @@
       background: white;
       border-radius: 12px;
       padding: 24px;
-      min-width: 350px;
+      width: 380px;
       max-width: 90%;
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
       animation: slideIn 0.2s ease-out;
@@ -400,21 +400,91 @@
       border-color: #667eea;
     }
 
+    .dialog-toggle-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 16px;
+      padding: 12px;
+      background: #f9fafb;
+      border-radius: 6px;
+    }
+
+    .dialog-toggle-label {
+      font-size: 14px;
+      color: #374151;
+      font-weight: 500;
+    }
+
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 48px;
+      height: 26px;
+      margin: 0;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #d1d5db;
+      transition: 0.3s;
+      border-radius: 26px;
+    }
+
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.3s;
+      border-radius: 50%;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .toggle-switch input:checked + .toggle-slider {
+      background-color: #667eea;
+    }
+
+    .toggle-switch input:checked + .toggle-slider:before {
+      transform: translateX(22px);
+    }
+
+    .toggle-switch input:disabled + .toggle-slider {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
     .dialog-buttons {
       display: flex;
-      gap: 8px;
+      gap: 10px;
       margin-top: 20px;
       justify-content: flex-end;
     }
 
     .dialog-btn {
-      padding: 8px 16px;
+      padding: 10px 20px;
       border: none;
       border-radius: 6px;
       font-size: 14px;
       font-weight: 500;
       cursor: pointer;
       transition: all 0.2s;
+      min-width: 100px;
+      white-space: nowrap;
     }
 
     .dialog-btn-cancel {
@@ -796,6 +866,13 @@
     <div class="dialog-box">
       <h3 class="dialog-title">Slack Webhook URL設定</h3>
       <input type="text" id="slackWebhookInput" class="dialog-input" placeholder="https://hooks.slack.com/services/...">
+      <div class="dialog-toggle-container">
+        <span class="dialog-toggle-label">Slack通知を有効にする</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="slackWebhookEnabled">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
       <div class="dialog-buttons">
         <button id="slackWebhookCancel" class="dialog-btn dialog-btn-cancel">キャンセル</button>
         <button id="slackWebhookSave" class="dialog-btn dialog-btn-save">保存</button>
