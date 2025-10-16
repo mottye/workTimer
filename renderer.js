@@ -288,16 +288,26 @@ function createStopwatchCard(stopwatch) {
       <div class="timer-display">${stopwatch.formatTime(stopwatch.elapsedSeconds)}</div>
       <div class="timer-controls">
         <button class="toggle-btn" title="スタート"><span class="material-icons">play_arrow</span></button>
-        <button class="clear-btn" title="クリア"><span class="material-icons">refresh</span></button>
-        <button class="edit-btn" title="編集"><span class="material-icons">edit</span></button>
-        <button class="delete-btn" title="削除"><span class="material-icons">delete</span></button>
+        <button class="timer-menu-btn" title="メニュー"><span class="material-icons">more_vert</span></button>
+        <div class="timer-dropdown-menu hidden">
+          <div class="menu-item timer-edit-item">
+            <span class="material-icons">edit</span>
+            <span>編集</span>
+          </div>
+          <div class="menu-item timer-clear-item">
+            <span class="material-icons">refresh</span>
+            <span>リセット</span>
+          </div>
+          <div class="menu-item timer-delete-item">
+            <span class="material-icons">delete</span>
+            <span>削除</span>
+          </div>
+        </div>
       </div>
     </div>
   `;
 
   // イベントリスナーを追加
-  const deleteBtn = card.querySelector('.delete-btn');
-  const editBtn = card.querySelector('.edit-btn');
   const taskNameDisplay = card.querySelector('.task-name-display');
   const taskNameInput = card.querySelector('.task-name-input');
   const targetDisplay = card.querySelector('.target-display');
@@ -306,8 +316,12 @@ function createStopwatchCard(stopwatch) {
   const targetMinutes = card.querySelector('.target-minutes');
   const targetSeconds = card.querySelector('.target-seconds');
   const toggleBtn = card.querySelector('.toggle-btn');
-  const clearBtn = card.querySelector('.clear-btn');
   const timerDisplay = card.querySelector('.timer-display');
+  const timerMenuBtn = card.querySelector('.timer-menu-btn');
+  const timerDropdownMenu = card.querySelector('.timer-dropdown-menu');
+  const timerEditItem = card.querySelector('.timer-edit-item');
+  const timerClearItem = card.querySelector('.timer-clear-item');
+  const timerDeleteItem = card.querySelector('.timer-delete-item');
   
   // 編集モードの状態
   let isEditing = false;
@@ -328,9 +342,20 @@ function createStopwatchCard(stopwatch) {
   // 初期表示を更新
   updateDisplays();
 
-  // 削除ボタンイベント
-  deleteBtn.addEventListener('click', () => {
-    removeStopwatch(stopwatch.id);
+  // タイマーメニューの開閉
+  timerMenuBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    // 他のタイマーメニューを閉じる
+    document.querySelectorAll('.timer-dropdown-menu').forEach(menu => {
+      if (menu !== timerDropdownMenu) {
+        menu.classList.add('hidden');
+      }
+    });
+    // カテゴリメニューも閉じる
+    document.querySelectorAll('.category-dropdown-menu').forEach(menu => {
+      menu.classList.add('hidden');
+    });
+    timerDropdownMenu.classList.toggle('hidden');
   });
 
   // タスク名の変更
@@ -399,7 +424,9 @@ function createStopwatchCard(stopwatch) {
     updateToggleButton();
   });
 
-  clearBtn.addEventListener('click', () => {
+  // リセットメニュー項目
+  timerClearItem.addEventListener('click', (e) => {
+    e.stopPropagation();
     // リセット前に確認ダイアログを表示
     const taskName = stopwatch.taskName || 'タスク名なし';
     const timeDisplay = stopwatch.formatTime(stopwatch.elapsedSeconds);
@@ -409,10 +436,27 @@ function createStopwatchCard(stopwatch) {
       stopwatch.clear();
       updateToggleButton();
     }
+    timerDropdownMenu.classList.add('hidden');
   });
 
-  // 編集ボタンイベント
-  editBtn.addEventListener('click', () => {
+  // 削除メニュー項目
+  timerDeleteItem.addEventListener('click', (e) => {
+    e.stopPropagation();
+    removeStopwatch(stopwatch.id);
+    timerDropdownMenu.classList.add('hidden');
+  });
+
+  // 編集メニュー項目
+  timerEditItem.addEventListener('click', (e) => {
+    e.stopPropagation();
+    timerDropdownMenu.classList.add('hidden');
+    
+    // 編集ボタンのクリックをトリガー
+    toggleEditMode();
+  });
+
+  // 編集モードの切り替え関数
+  const toggleEditMode = () => {
     isEditing = !isEditing;
     
     if (isEditing) {
@@ -439,11 +483,11 @@ function createStopwatchCard(stopwatch) {
       
       taskNameInput.focus();
       
-      // ボタンの表示を変更
-      const icon = editBtn.querySelector('.material-icons');
+      // メニューボタンの表示を変更
+      const icon = timerMenuBtn.querySelector('.material-icons');
       icon.textContent = 'check';
-      editBtn.title = '完了';
-      editBtn.classList.add('edit-active');
+      timerMenuBtn.title = '完了';
+      timerMenuBtn.classList.add('edit-active');
     } else {
       // 編集モードOFF: displayを表示、inputを非表示
       taskNameDisplay.classList.remove('hidden');
@@ -454,13 +498,13 @@ function createStopwatchCard(stopwatch) {
       // 表示を更新
       updateDisplays();
       
-      // ボタンの表示を変更
-      const icon = editBtn.querySelector('.material-icons');
-      icon.textContent = 'edit';
-      editBtn.title = '編集';
-      editBtn.classList.remove('edit-active');
+      // メニューボタンの表示を変更
+      const icon = timerMenuBtn.querySelector('.material-icons');
+      icon.textContent = 'more_vert';
+      timerMenuBtn.title = 'メニュー';
+      timerMenuBtn.classList.remove('edit-active');
     }
-  });
+  };
 
   // ドラッグ&ドロップイベント（タイマーカード）
   card.addEventListener('dragstart', handleTimerDragStart);

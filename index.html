@@ -859,21 +859,42 @@
       background: #4b5563;
     }
 
-    .edit-btn {
+    .timer-menu-btn {
       background: #3b82f6;
       color: white;
     }
 
-    .edit-btn:hover:not(:disabled) {
+    .timer-menu-btn:hover:not(:disabled) {
       background: #2563eb;
     }
 
-    .edit-btn.edit-active {
+    .timer-menu-btn.edit-active {
       background: #10b981;
     }
 
-    .edit-btn.edit-active:hover:not(:disabled) {
+    .timer-menu-btn.edit-active:hover:not(:disabled) {
       background: #059669;
+    }
+
+    .timer-dropdown-menu {
+      position: absolute;
+      top: 35px;
+      right: 0;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      min-width: 140px;
+      overflow: hidden;
+      z-index: 1000;
+      animation: slideDown 0.2s ease-out;
+    }
+
+    .timer-dropdown-menu.hidden {
+      display: none;
+    }
+
+    .timer-controls {
+      position: relative;
     }
 
     /* テキスト表示用のスタイル */
