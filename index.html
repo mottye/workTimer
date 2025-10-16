@@ -217,6 +217,73 @@
       background: #5568d3;
     }
 
+    .menu-item-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      color: #333;
+      font-size: 14px;
+    }
+
+    .menu-toggle-label {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .menu-toggle-label .material-icons {
+      font-size: 20px;
+      color: #667eea;
+    }
+
+    .toggle-switch-small {
+      position: relative;
+      display: inline-block;
+      width: 40px;
+      height: 22px;
+      margin: 0;
+    }
+
+    .toggle-switch-small input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .toggle-slider-small {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #d1d5db;
+      transition: 0.3s;
+      border-radius: 22px;
+    }
+
+    .toggle-slider-small:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.3s;
+      border-radius: 50%;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .toggle-switch-small input:checked + .toggle-slider-small {
+      background-color: #667eea;
+    }
+
+    .toggle-switch-small input:checked + .toggle-slider-small:before {
+      transform: translateX(18px);
+    }
+
     .timers-container {
       max-width: 400px;
       margin: 0 auto;
@@ -838,6 +905,17 @@
         <div class="menu-item" id="addTimerMenuItem">
           <span class="material-icons">add_circle_outline</span>
           <span>タイマーを追加</span>
+        </div>
+        <div class="menu-divider"></div>
+        <div class="menu-item-toggle">
+          <div class="menu-toggle-label">
+            <span class="material-icons">push_pin</span>
+            <span>常に最前面に表示</span>
+          </div>
+          <label class="toggle-switch-small">
+            <input type="checkbox" id="alwaysOnTopToggle" checked>
+            <span class="toggle-slider-small"></span>
+          </label>
         </div>
         <div class="menu-divider"></div>
         <div class="menu-item" id="setSlackWebhookMenuItem">

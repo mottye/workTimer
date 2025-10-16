@@ -33,6 +33,14 @@ ipcMain.on('set-opacity', (event, opacity) => {
   }
 });
 
+// Always On Top変更のIPCハンドラ
+ipcMain.on('set-always-on-top', (event, alwaysOnTop) => {
+  if (mainWindow) {
+    mainWindow.setAlwaysOnTop(alwaysOnTop);
+    console.log('Always On Top設定を変更しました:', alwaysOnTop);
+  }
+});
+
 app.whenReady().then(() => {
   createWindow();
 

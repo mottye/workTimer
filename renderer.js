@@ -10,6 +10,7 @@ let nextCategoryId = 1;
 // Slack Webhook URL を保存する変数
 let slackWebhookUrl = null;
 let slackWebhookEnabled = false; // Slack通知の有効/無効
+let alwaysOnTop = true; // 常に最前面に表示
 
 const { ipcRenderer } = require('electron');
 
@@ -33,14 +34,27 @@ function loadSlackWebhookUrl() {
   }
 }
 
-// 初期化時にURLを読み込む
+// Always On Top設定を読み込む
+function loadAlwaysOnTopSetting() {
+  const savedSetting = localStorage.getItem('alwaysOnTop');
+  if (savedSetting !== null) {
+    alwaysOnTop = savedSetting === 'true';
+  }
+  // メインプロセスに設定を適用
+  ipcRenderer.send('set-always-on-top', alwaysOnTop);
+  console.log('Always On Top設定を読み込みました:', alwaysOnTop);
+}
+
+// 初期化時にURLと設定を読み込む
 loadSlackWebhookUrl();
+loadAlwaysOnTopSetting();
 
 const menuBtn = document.getElementById('menuBtn');
 const dropdownMenu = document.getElementById('dropdownMenu');
 const addCategoryMenuItem = document.getElementById('addCategoryMenuItem');
 const addTimerMenuItem = document.getElementById('addTimerMenuItem');
 const setSlackWebhookMenuItem = document.getElementById('setSlackWebhookMenuItem');
+const alwaysOnTopToggle = document.getElementById('alwaysOnTopToggle');
 const opacitySlider = document.getElementById('opacitySlider');
 const opacityValue = document.getElementById('opacityValue');
 const timersContainer = document.getElementById('timersContainer');
@@ -925,6 +939,18 @@ slackWebhookInput.addEventListener('keypress', (e) => {
     slackWebhookSave.click();
   }
 });
+
+// Always On Topトグルのイベント
+alwaysOnTopToggle.addEventListener('change', (e) => {
+  alwaysOnTop = e.target.checked;
+  localStorage.setItem('alwaysOnTop', alwaysOnTop.toString());
+  ipcRenderer.send('set-always-on-top', alwaysOnTop);
+  console.log('Always On Top設定を変更しました:', alwaysOnTop);
+  e.stopPropagation();
+});
+
+// 初期化時にトグルの状態を反映
+alwaysOnTopToggle.checked = alwaysOnTop;
 
 // 透明度スライダーのイベント
 opacitySlider.addEventListener('input', (e) => {
