@@ -17,6 +17,11 @@ class Category {
   constructor(id, name = '新しいカテゴリ') {
     this.id = id;
     this.name = name;
+    this.isCollapsed = false; // 折りたたみ状態
+  }
+  
+  toggleCollapse() {
+    this.isCollapsed = !this.isCollapsed;
   }
 }
 
@@ -294,6 +299,9 @@ function createCategoryContainer(category) {
 
   container.innerHTML = `
     <div class="category-header">
+      <button class="collapse-btn" title="折りたたみ">
+        <span class="material-icons collapse-icon">expand_more</span>
+      </button>
       <span class="drag-handle" title="ドラッグして移動">⋮⋮</span>
       <input type="text" class="category-name-input" value="${category.name}" placeholder="カテゴリ名">
       <div class="category-controls">
@@ -307,9 +315,28 @@ function createCategoryContainer(category) {
   `;
 
   // イベントリスナー
+  const collapseBtn = container.querySelector('.collapse-btn');
+  const collapseIcon = container.querySelector('.collapse-icon');
+  const categoryTimers = container.querySelector('.category-timers');
   const nameInput = container.querySelector('.category-name-input');
   const addTimerBtn = container.querySelector('.category-add-timer-btn');
   const deleteBtn = container.querySelector('.category-delete-btn');
+
+  // 折りたたみボタン
+  collapseBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    category.toggleCollapse();
+    
+    if (category.isCollapsed) {
+      categoryTimers.classList.add('collapsed');
+      collapseIcon.textContent = 'chevron_right';
+      container.classList.add('collapsed');
+    } else {
+      categoryTimers.classList.remove('collapsed');
+      collapseIcon.textContent = 'expand_more';
+      container.classList.remove('collapsed');
+    }
+  });
 
   nameInput.addEventListener('input', (e) => {
     category.name = e.target.value;
