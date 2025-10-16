@@ -278,7 +278,7 @@ function createStopwatchCard(stopwatch, autoEdit = false) {
       <span class="target-label">目標:</span>
       <span class="target-display">--:--:--</span>
       <div class="target-input-group hidden">
-        <input type="number" class="target-input target-hours" placeholder="時" min="0" max="99" value="">
+        <input type="number" class="target-input target-hours" placeholder="時" min="0" max="23" value="">
         <span class="target-separator">:</span>
         <input type="number" class="target-input target-minutes" placeholder="分" min="0" max="59" value="">
         <span class="target-separator">:</span>
@@ -337,8 +337,23 @@ function createStopwatchCard(stopwatch, autoEdit = false) {
     updateDisplays();
   });
 
+  // 目標時間のバリデーション関数
+  const validateTargetInput = (input, max) => {
+    let value = parseInt(input.value) || 0;
+    if (value < 0) value = 0;
+    if (value > max) value = max;
+    if (input.value !== '' && value !== parseInt(input.value)) {
+      input.value = value;
+    }
+  };
+
   // 目標時間の入力イベント
   const updateTargetTime = () => {
+    // バリデーション
+    validateTargetInput(targetHours, 23);
+    validateTargetInput(targetMinutes, 59);
+    validateTargetInput(targetSeconds, 59);
+    
     stopwatch.setTargetTime(targetHours.value, targetMinutes.value, targetSeconds.value);
     updateTimerDisplay();
     updateTargetTotalTime();
@@ -349,6 +364,11 @@ function createStopwatchCard(stopwatch, autoEdit = false) {
   targetHours.addEventListener('input', updateTargetTime);
   targetMinutes.addEventListener('input', updateTargetTime);
   targetSeconds.addEventListener('input', updateTargetTime);
+  
+  // blurイベントでもバリデーション（フォーカスが外れた時）
+  targetHours.addEventListener('blur', () => validateTargetInput(targetHours, 23));
+  targetMinutes.addEventListener('blur', () => validateTargetInput(targetMinutes, 59));
+  targetSeconds.addEventListener('blur', () => validateTargetInput(targetSeconds, 59));
 
   // タイマー表示の更新（目標時間との比較も含む）
   const updateTimerDisplay = () => {
