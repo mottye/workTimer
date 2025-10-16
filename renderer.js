@@ -45,9 +45,135 @@ function loadAlwaysOnTopSetting() {
   console.log('Always On Top設定を読み込みました:', alwaysOnTop);
 }
 
+// データ保存関数
+function saveData() {
+  const data = {
+    categories: categories.map(cat => ({
+      id: cat.id,
+      name: cat.name,
+      isCollapsed: cat.isCollapsed
+    })),
+    stopwatches: stopwatches.map(sw => ({
+      id: sw.id,
+      categoryId: sw.categoryId,
+      taskName: sw.taskName,
+      elapsedSeconds: sw.elapsedSeconds,
+      targetSeconds: sw.targetSeconds,
+      isRunning: false // 保存時は全て停止状態にする
+    })),
+    nextCategoryId: nextCategoryId,
+    nextStopwatchId: nextStopwatchId
+  };
+  
+  localStorage.setItem('stopwatchData', JSON.stringify(data));
+  console.log('データを保存しました');
+}
+
+// データ読み込み関数
+function loadData() {
+  const savedData = localStorage.getItem('stopwatchData');
+  if (!savedData) {
+    console.log('保存されたデータがありません');
+    return;
+  }
+  
+  try {
+    const data = JSON.parse(savedData);
+    
+    // IDカウンターを復元
+    if (data.nextCategoryId) nextCategoryId = data.nextCategoryId;
+    if (data.nextStopwatchId) nextStopwatchId = data.nextStopwatchId;
+    
+    // カテゴリを復元
+    if (data.categories && data.categories.length > 0) {
+      data.categories.forEach(catData => {
+        const category = new Category(catData.id, catData.name);
+        category.isCollapsed = catData.isCollapsed || false;
+        categories.push(category);
+      });
+    }
+    
+    // タイマーを復元
+    if (data.stopwatches && data.stopwatches.length > 0) {
+      data.stopwatches.forEach(swData => {
+        const stopwatch = new Stopwatch(swData.id, swData.categoryId);
+        stopwatch.taskName = swData.taskName || '';
+        stopwatch.elapsedSeconds = swData.elapsedSeconds || 0;
+        stopwatch.targetSeconds = swData.targetSeconds || 0;
+        // isRunningは常にfalse（保存時に停止状態にしているため）
+        stopwatches.push(stopwatch);
+      });
+    }
+    
+    console.log('データを読み込みました:', {
+      categories: categories.length,
+      stopwatches: stopwatches.length
+    });
+    
+    // UIを再構築
+    renderCategories();
+    updateDisplays();
+    
+  } catch (error) {
+    console.error('データの読み込みに失敗しました:', error);
+  }
+}
+
+// UIを再構築する関数
+function renderCategories() {
+  // 空の状態メッセージを削除
+  const emptyState = timersContainer.querySelector('.empty-state');
+  if (emptyState) {
+    emptyState.remove();
+  }
+  
+  // カテゴリがある場合
+  if (categories.length > 0) {
+    categories.forEach(category => {
+      const categoryContainer = createCategoryContainer(category);
+      timersContainer.appendChild(categoryContainer);
+      
+      // カテゴリに属するタイマーを追加
+      const categoryStopwatches = stopwatches.filter(sw => sw.categoryId === category.id);
+      const categoryTimers = categoryContainer.querySelector('.category-timers');
+      
+      if (categoryStopwatches.length > 0) {
+        // 空の状態メッセージを削除
+        const catEmptyState = categoryTimers.querySelector('.category-empty-state');
+        if (catEmptyState) {
+          catEmptyState.remove();
+        }
+        
+        categoryStopwatches.forEach(stopwatch => {
+          const card = createStopwatchCard(stopwatch, false); // autoEditはfalse
+          categoryTimers.appendChild(card);
+        });
+      }
+    });
+  }
+  
+  // カテゴリに属さないタイマーを追加
+  const uncategorizedStopwatches = stopwatches.filter(sw => !sw.categoryId);
+  if (uncategorizedStopwatches.length > 0) {
+    uncategorizedStopwatches.forEach(stopwatch => {
+      const card = createStopwatchCard(stopwatch, false);
+      timersContainer.appendChild(card);
+    });
+  }
+  
+  // 何もない場合は空の状態を表示
+  if (categories.length === 0 && stopwatches.length === 0) {
+    const emptyState = document.createElement('div');
+    emptyState.className = 'empty-state';
+    emptyState.textContent = '「カテゴリを追加」からスタート';
+    timersContainer.appendChild(emptyState);
+  }
+}
+
 // 初期化時にURLと設定を読み込む
 loadSlackWebhookUrl();
 loadAlwaysOnTopSetting();
+loadData(); // データを読み込み
 
 const menuBtn = document.getElementById('menuBtn');
 const dropdownMenu = document.getElementById('dropdownMenu');
@@ -139,6 +265,7 @@ class Stopwatch {
       }
       
       this.updateButtons();
+      saveData(); // データを保存
     }
   }
 
@@ -161,6 +288,7 @@ class Stopwatch {
     this.elapsedSeconds = 0;
     this.updateDisplay();
     this.updateButtons();
+    saveData(); // データを保存
   }
 
   updateDisplay() {
@@ -259,6 +387,8 @@ function addStopwatch(categoryId = null, autoEdit = true) {
     }
     timersContainer.appendChild(card);
   }
+  
+  saveData(); // データを保存
 }
 
 // ストップウォッチカードのHTML作成
@@ -480,6 +610,9 @@ function createStopwatchCard(stopwatch, autoEdit = false) {
       
       // 確定ボタンを再生ボタンに戻す
       updateToggleButton();
+      
+      // データを保存
+      saveData();
     }
   };
 
@@ -546,6 +679,7 @@ function removeStopwatch(stopwatchId) {
     }
   }
   
+  saveData(); // データを保存
   updateTotalTime();
 }
 
@@ -682,11 +816,14 @@ function createCategoryContainer(category) {
       collapseIcon.textContent = 'expand_more';
       container.classList.remove('collapsed');
     }
+    
+    saveData(); // データを保存
   });
 
   nameInput.addEventListener('input', (e) => {
     category.name = e.target.value;
     nameDisplay.textContent = e.target.value;
+    saveData(); // データを保存
   });
 
   // カテゴリ編集モードの切り替え関数
@@ -750,6 +887,8 @@ function addCategory() {
 
   const categoryContainer = createCategoryContainer(category);
   timersContainer.appendChild(categoryContainer);
+  
+  saveData(); // データを保存
 }
 
 // カテゴリを削除
@@ -794,6 +933,8 @@ function removeCategory(categoryId) {
     emptyState.textContent = '「カテゴリを追加」からスタート';
     timersContainer.appendChild(emptyState);
   }
+  
+  saveData(); // データを保存
 
   updateTotalTime();
 }
@@ -852,6 +993,7 @@ function handleCategoryDrop(e) {
     
     // カテゴリ配列の順序も更新
     reorderCategoriesArray();
+    saveData(); // データを保存
   }
   
   return false;
@@ -913,6 +1055,7 @@ function handleTimerDrop(e) {
     if (timer) {
       timer.categoryId = newCategoryId ? parseInt(newCategoryId) : null;
     }
+    saveData(); // データを保存
   }
   
   return false;
