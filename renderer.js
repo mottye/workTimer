@@ -177,9 +177,11 @@ function createStopwatchCard(stopwatch) {
   const card = document.createElement('div');
   card.className = 'timer-card';
   card.setAttribute('data-timer-id', stopwatch.id);
+  card.setAttribute('draggable', 'true');
 
   card.innerHTML = `
     <div class="task-name-container">
+      <span class="drag-handle-small" title="ドラッグして移動">⋮⋮</span>
       <input type="text" class="task-name-input" placeholder="タスク名" value="">
     </div>
     <div class="timer-main-row">
@@ -214,6 +216,12 @@ function createStopwatchCard(stopwatch) {
   startBtn.addEventListener('click', () => stopwatch.start());
   pauseBtn.addEventListener('click', () => stopwatch.pause());
   clearBtn.addEventListener('click', () => stopwatch.clear());
+
+  // ドラッグ&ドロップイベント（タイマーカード）
+  card.addEventListener('dragstart', handleTimerDragStart);
+  card.addEventListener('dragover', handleTimerDragOver);
+  card.addEventListener('drop', handleTimerDrop);
+  card.addEventListener('dragend', handleDragEnd);
 
   return card;
 }
@@ -282,9 +290,11 @@ function createCategoryContainer(category) {
   const container = document.createElement('div');
   container.className = 'category-container';
   container.setAttribute('data-category-id', category.id);
+  container.setAttribute('draggable', 'true');
 
   container.innerHTML = `
     <div class="category-header">
+      <span class="drag-handle" title="ドラッグして移動">⋮⋮</span>
       <input type="text" class="category-name-input" value="${category.name}" placeholder="カテゴリ名">
       <div class="category-controls">
         <button class="category-add-timer-btn" title="タイマーを追加">+</button>
@@ -312,6 +322,12 @@ function createCategoryContainer(category) {
   deleteBtn.addEventListener('click', () => {
     removeCategory(category.id);
   });
+
+  // ドラッグ&ドロップイベント（カテゴリ）
+  container.addEventListener('dragstart', handleCategoryDragStart);
+  container.addEventListener('dragover', handleCategoryDragOver);
+  container.addEventListener('drop', handleCategoryDrop);
+  container.addEventListener('dragend', handleDragEnd);
 
   return container;
 }
@@ -361,6 +377,196 @@ function removeCategory(categoryId) {
   }
 
   updateTotalTime();
+}
+
+// ドラッグ&ドロップ関連の変数
+let draggedElement = null;
+let draggedType = null; // 'category' or 'timer'
+
+// カテゴリのドラッグ開始
+function handleCategoryDragStart(e) {
+  draggedElement = e.currentTarget;
+  draggedType = 'category';
+  e.currentTarget.style.opacity = '0.5';
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/html', e.currentTarget.innerHTML);
+}
+
+// カテゴリのドラッグオーバー
+function handleCategoryDragOver(e) {
+  if (draggedType !== 'category') return;
+  if (e.preventDefault) e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  
+  const target = e.currentTarget;
+  if (target !== draggedElement && target.classList.contains('category-container')) {
+    const rect = target.getBoundingClientRect();
+    const midpoint = rect.top + rect.height / 2;
+    
+    if (e.clientY < midpoint) {
+      target.style.borderTop = '3px solid #667eea';
+      target.style.borderBottom = '';
+    } else {
+      target.style.borderBottom = '3px solid #667eea';
+      target.style.borderTop = '';
+    }
+  }
+  
+  return false;
+}
+
+// カテゴリのドロップ
+function handleCategoryDrop(e) {
+  if (draggedType !== 'category') return;
+  if (e.stopPropagation) e.stopPropagation();
+  
+  const target = e.currentTarget;
+  if (draggedElement !== target) {
+    const rect = target.getBoundingClientRect();
+    const midpoint = rect.top + rect.height / 2;
+    
+    if (e.clientY < midpoint) {
+      timersContainer.insertBefore(draggedElement, target);
+    } else {
+      timersContainer.insertBefore(draggedElement, target.nextSibling);
+    }
+    
+    // カテゴリ配列の順序も更新
+    reorderCategoriesArray();
+  }
+  
+  return false;
+}
+
+// タイマーのドラッグ開始
+function handleTimerDragStart(e) {
+  draggedElement = e.currentTarget;
+  draggedType = 'timer';
+  e.currentTarget.style.opacity = '0.5';
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/html', e.currentTarget.innerHTML);
+}
+
+// タイマーのドラッグオーバー
+function handleTimerDragOver(e) {
+  if (draggedType !== 'timer') return;
+  if (e.preventDefault) e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  
+  const target = e.currentTarget;
+  if (target !== draggedElement && target.classList.contains('timer-card')) {
+    const rect = target.getBoundingClientRect();
+    const midpoint = rect.top + rect.height / 2;
+    
+    if (e.clientY < midpoint) {
+      target.style.borderTop = '3px solid #667eea';
+      target.style.borderBottom = '';
+    } else {
+      target.style.borderBottom = '3px solid #667eea';
+      target.style.borderTop = '';
+    }
+  }
+  
+  return false;
+}
+
+// タイマーのドロップ
+function handleTimerDrop(e) {
+  if (draggedType !== 'timer') return;
+  if (e.stopPropagation) e.stopPropagation();
+  
+  const target = e.currentTarget;
+  if (draggedElement !== target) {
+    const rect = target.getBoundingClientRect();
+    const midpoint = rect.top + rect.height / 2;
+    const targetParent = target.parentElement;
+    
+    if (e.clientY < midpoint) {
+      targetParent.insertBefore(draggedElement, target);
+    } else {
+      targetParent.insertBefore(draggedElement, target.nextSibling);
+    }
+    
+    // タイマーのカテゴリIDを更新
+    const newCategoryId = targetParent.getAttribute('data-category-id');
+    const timerId = parseInt(draggedElement.getAttribute('data-timer-id'));
+    const timer = stopwatches.find(sw => sw.id === timerId);
+    if (timer) {
+      timer.categoryId = newCategoryId ? parseInt(newCategoryId) : null;
+    }
+  }
+  
+  return false;
+}
+
+// カテゴリタイマーエリアへのドロップ対応
+document.addEventListener('DOMContentLoaded', () => {
+  timersContainer.addEventListener('dragover', (e) => {
+    if (draggedType === 'timer') {
+      const categoryTimers = e.target.closest('.category-timers');
+      if (categoryTimers) {
+        e.preventDefault();
+        categoryTimers.style.background = 'rgba(102, 126, 234, 0.1)';
+      }
+    }
+  });
+  
+  timersContainer.addEventListener('drop', (e) => {
+    const categoryTimers = e.target.closest('.category-timers');
+    if (categoryTimers && draggedType === 'timer') {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // 空の状態メッセージを削除
+      const emptyState = categoryTimers.querySelector('.category-empty-state');
+      if (emptyState) {
+        emptyState.remove();
+      }
+      
+      // タイマーを追加
+      categoryTimers.appendChild(draggedElement);
+      
+      // タイマーのカテゴリIDを更新
+      const newCategoryId = categoryTimers.getAttribute('data-category-id');
+      const timerId = parseInt(draggedElement.getAttribute('data-timer-id'));
+      const timer = stopwatches.find(sw => sw.id === timerId);
+      if (timer) {
+        timer.categoryId = newCategoryId ? parseInt(newCategoryId) : null;
+      }
+      
+      categoryTimers.style.background = '';
+    }
+  });
+});
+
+// ドラッグ終了
+function handleDragEnd(e) {
+  e.currentTarget.style.opacity = '';
+  
+  // すべてのボーダーをクリア
+  document.querySelectorAll('.category-container, .timer-card').forEach(el => {
+    el.style.borderTop = '';
+    el.style.borderBottom = '';
+  });
+  
+  document.querySelectorAll('.category-timers').forEach(el => {
+    el.style.background = '';
+  });
+  
+  draggedElement = null;
+  draggedType = null;
+}
+
+// カテゴリ配列の順序を更新
+function reorderCategoriesArray() {
+  const categoryElements = Array.from(document.querySelectorAll('.category-container'));
+  const newOrder = categoryElements.map(el => {
+    const id = parseInt(el.getAttribute('data-category-id'));
+    return categories.find(c => c.id === id);
+  }).filter(c => c);
+  
+  categories.length = 0;
+  categories.push(...newOrder);
 }
 
 // イベントリスナー

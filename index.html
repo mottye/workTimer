@@ -100,6 +100,11 @@
       animation: slideIn 0.3s ease-out;
       transition: all 0.3s ease;
       border: 2px solid transparent;
+      cursor: move;
+    }
+
+    .timer-card.dragging {
+      opacity: 0.5;
     }
 
     .timer-card.running {
@@ -116,6 +121,16 @@
       padding: 10px;
       margin-bottom: 12px;
       backdrop-filter: blur(10px);
+      cursor: move;
+      transition: all 0.2s;
+    }
+
+    .category-container:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .category-container.dragging {
+      opacity: 0.5;
     }
 
     .category-header {
@@ -186,6 +201,7 @@
       flex-direction: column;
       gap: 8px;
       min-height: 40px;
+      transition: background 0.2s;
     }
 
     .category-empty-state {
@@ -202,6 +218,25 @@
       gap: 8px;
     }
 
+    .drag-handle, .drag-handle-small {
+      color: rgba(255, 255, 255, 0.6);
+      font-weight: bold;
+      cursor: grab;
+      user-select: none;
+      margin-right: 8px;
+      font-size: 16px;
+    }
+
+    .drag-handle-small {
+      color: #999;
+      font-size: 14px;
+      margin-right: 6px;
+    }
+
+    .drag-handle:active, .drag-handle-small:active {
+      cursor: grabbing;
+    }
+
     .task-name-container {
       display: flex;
       align-items: center;
@@ -216,6 +251,7 @@
       border-radius: 4px;
       outline: none;
       transition: border-color 0.3s;
+      cursor: text;
     }
 
     .task-name-input:focus {
