@@ -438,7 +438,21 @@ npm start
 - `updateCategoryTime()`関数でカテゴリごとの合計を計算
 - `updateAllCategoryTimes()`関数で全カテゴリを一括更新
 
-**Step24以降（将来対応）**: 追加要件があれば対応
+**Step24（完了✅）**: Slack Webhook URL設定機能
+- メインメニューに「Slack WebhookURLを追加」項目を追加
+- Material Icons `settings`アイコン使用
+- クリック時にプロンプトダイアログを表示
+  - 現在のURLをデフォルト値として表示
+  - 新しいURLを入力可能
+  - 空文字で削除可能
+- localStorageで永続化
+  - `slackWebhookUrl`キーで保存
+  - アプリ起動時に自動読み込み
+- 保存・削除時にアラートで確認メッセージ表示
+- `loadSlackWebhookUrl()`関数で初期化時に読み込み
+- 実際のWebhook送信機能はまだ未実装（将来対応）
+
+**Step25以降（将来対応）**: 追加要件があれば対応
 
 ---
 

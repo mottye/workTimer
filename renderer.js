@@ -14,15 +14,31 @@ if ('Notification' in window && Notification.permission === 'default') {
   Notification.requestPermission();
 }
 
+// Slack Webhook URLを読み込む
+function loadSlackWebhookUrl() {
+  const savedUrl = localStorage.getItem('slackWebhookUrl');
+  if (savedUrl) {
+    slackWebhookUrl = savedUrl;
+    console.log('Slack Webhook URLを読み込みました:', slackWebhookUrl);
+  }
+}
+
+// 初期化時にURLを読み込む
+loadSlackWebhookUrl();
+
 const menuBtn = document.getElementById('menuBtn');
 const dropdownMenu = document.getElementById('dropdownMenu');
 const addCategoryMenuItem = document.getElementById('addCategoryMenuItem');
 const addTimerMenuItem = document.getElementById('addTimerMenuItem');
+const setSlackWebhookMenuItem = document.getElementById('setSlackWebhookMenuItem');
 const opacitySlider = document.getElementById('opacitySlider');
 const opacityValue = document.getElementById('opacityValue');
 const timersContainer = document.getElementById('timersContainer');
 const totalTimeDisplay = document.getElementById('totalTimeDisplay');
 const targetTotalDisplay = document.getElementById('targetTotalDisplay');
+
+// Slack Webhook URL を保存する変数
+let slackWebhookUrl = null;
 
 // カテゴリクラス
 class Category {
@@ -827,6 +843,29 @@ addCategoryMenuItem.addEventListener('click', () => {
 
 addTimerMenuItem.addEventListener('click', () => {
   addStopwatch(null);
+  dropdownMenu.classList.add('hidden');
+});
+
+// Slack Webhook URL設定
+setSlackWebhookMenuItem.addEventListener('click', () => {
+  const currentUrl = slackWebhookUrl || '';
+  const newUrl = prompt('Slack Webhook URLを入力してください:', currentUrl);
+  
+  if (newUrl !== null) {
+    // キャンセルされていない場合
+    if (newUrl.trim() === '') {
+      // 空文字の場合は削除
+      slackWebhookUrl = null;
+      localStorage.removeItem('slackWebhookUrl');
+      alert('Slack Webhook URLを削除しました。');
+    } else {
+      // URLを保存
+      slackWebhookUrl = newUrl.trim();
+      localStorage.setItem('slackWebhookUrl', slackWebhookUrl);
+      alert('Slack Webhook URLを保存しました。');
+    }
+  }
+  
   dropdownMenu.classList.add('hidden');
 });
 
