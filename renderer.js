@@ -511,7 +511,7 @@ function createStopwatchCard(stopwatch, autoEdit = false) {
       <input type="text" class="task-name-input hidden" placeholder="タスク名" value="">
     </div>
     <div class="target-time-container">
-      <span class="target-label">目標:</span>
+      <span class="target-label">予定:</span>
       <span class="target-display">--:--:--</span>
       <div class="target-input-group hidden">
         <input type="number" class="target-input target-hours" placeholder="時" min="0" max="23" value="">
@@ -1541,7 +1541,7 @@ async function sendSlackNotificationSchedule() {
             
             if (sw.targetSeconds && sw.targetSeconds > 0) {
               const target = formatTimeForSlack(sw.targetSeconds);
-              message += `  • ${taskName} (目標: ${target})\n`;
+              message += `  • ${taskName} (予定: ${target})\n`;
             } else {
               message += `  • ${taskName}\n`;
             }
@@ -1562,7 +1562,7 @@ async function sendSlackNotificationSchedule() {
         
         if (sw.targetSeconds && sw.targetSeconds > 0) {
           const target = formatTimeForSlack(sw.targetSeconds);
-          message += `  • ${taskName} (目標: ${target})\n`;
+          message += `  • ${taskName} (予定: ${target})\n`;
         } else {
           message += `  • ${taskName}\n`;
         }
@@ -1634,7 +1634,7 @@ async function sendSlackNotificationActual() {
             
             if (sw.targetSeconds && sw.targetSeconds > 0) {
               const target = formatTimeForSlack(sw.targetSeconds);
-              message += `  • ${taskName} - 実績: ${actual} / 目標: ${target}\n`;
+              message += `  • ${taskName} - 実績: ${actual} / 予定: ${target}\n`;
             } else {
               message += `  • ${taskName} - 実績: ${actual}\n`;
             }
@@ -1656,7 +1656,7 @@ async function sendSlackNotificationActual() {
         
         if (sw.targetSeconds && sw.targetSeconds > 0) {
           const target = formatTimeForSlack(sw.targetSeconds);
-          message += `  • ${taskName} - 実績: ${actual} / 目標: ${target}\n`;
+          message += `  • ${taskName} - 実績: ${actual} / 予定: ${target}\n`;
         } else {
           message += `  • ${taskName} - 実績: ${actual}\n`;
         }
