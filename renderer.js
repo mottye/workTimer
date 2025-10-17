@@ -284,6 +284,7 @@ const addCategoryMenuItem = document.getElementById('addCategoryMenuItem');
 const addTimerMenuItem = document.getElementById('addTimerMenuItem');
 const setSlackWebhookMenuItem = document.getElementById('setSlackWebhookMenuItem');
 const dataManagementMenuItem = document.getElementById('dataManagementMenuItem');
+const saveLocationMenuItem = document.getElementById('saveLocationMenuItem');
 const alwaysOnTopToggle = document.getElementById('alwaysOnTopToggle');
 const opacitySlider = document.getElementById('opacitySlider');
 const opacityValue = document.getElementById('opacityValue');
@@ -1345,6 +1346,15 @@ const exportDataBtn = document.getElementById('exportDataBtn');
 const importDataBtn = document.getElementById('importDataBtn');
 const dataManagementClose = document.getElementById('dataManagementClose');
 
+// 保存先設定ダイアログ
+const saveLocationDialog = document.getElementById('saveLocationDialog');
+const saveLocationPath = document.getElementById('saveLocationPath');
+const selectSaveLocationBtn = document.getElementById('selectSaveLocationBtn');
+const saveLocationClose = document.getElementById('saveLocationClose');
+
+// 保存先パスを保持
+let saveLocation = localStorage.getItem('saveLocation') || '';
+
 // ダイアログを開く
 function openSlackWebhookDialog() {
   slackWebhookInput.value = slackWebhookUrl || '';
@@ -1360,6 +1370,17 @@ function closeSlackWebhookDialog() {
   slackWebhookDialog.classList.add('hidden');
   slackWebhookInput.value = '';
   slackUsernameInput.value = '';
+}
+
+// 保存先設定ダイアログを開く
+function openSaveLocationDialog() {
+  saveLocationPath.value = saveLocation || '';
+  saveLocationDialog.classList.remove('hidden');
+}
+
+// 保存先設定ダイアログを閉じる
+function closeSaveLocationDialog() {
+  saveLocationDialog.classList.add('hidden');
 }
 
 // Slack Webhook URL設定メニュー
@@ -1384,6 +1405,48 @@ function closeDataManagementDialog() {
 if (dataManagementMenuItem) {
   dataManagementMenuItem.addEventListener('click', () => {
     openDataManagementDialog();
+  });
+}
+
+// 保存先設定メニュー
+if (saveLocationMenuItem) {
+  saveLocationMenuItem.addEventListener('click', () => {
+    openSaveLocationDialog();
+    dropdownMenu.classList.add('hidden');
+  });
+}
+
+// 保存先選択ボタン
+if (selectSaveLocationBtn) {
+  selectSaveLocationBtn.addEventListener('click', async () => {
+    try {
+      const result = await ipcRenderer.invoke('select-save-location');
+      if (result) {
+        saveLocation = result;
+        saveLocationPath.value = saveLocation;
+        localStorage.setItem('saveLocation', saveLocation);
+        alert(`保存先を設定しました:\n${saveLocation}`);
+      }
+    } catch (error) {
+      console.error('保存先選択エラー:', error);
+      alert('保存先の選択に失敗しました');
+    }
+  });
+}
+
+// 保存先設定ダイアログを閉じる
+if (saveLocationClose) {
+  saveLocationClose.addEventListener('click', () => {
+    closeSaveLocationDialog();
+  });
+}
+
+// 保存先設定ダイアログの外側クリックで閉じる
+if (saveLocationDialog) {
+  saveLocationDialog.addEventListener('click', (e) => {
+    if (e.target === saveLocationDialog) {
+      closeSaveLocationDialog();
+    }
   });
 }
 

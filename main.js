@@ -65,6 +65,20 @@ ipcMain.handle('save-data-file', async (event, { data, defaultFilename }) => {
   }
 });
 
+// 保存先選択用のIPCハンドラ
+ipcMain.handle('select-save-location', async (event) => {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    title: '保存先フォルダを選択',
+    properties: ['openDirectory', 'createDirectory']
+  });
+
+  if (result.canceled || result.filePaths.length === 0) {
+    return null;
+  }
+
+  return result.filePaths[0];
+});
+
 app.whenReady().then(() => {
   createWindow();
 
