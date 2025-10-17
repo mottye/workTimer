@@ -522,7 +522,16 @@ function createStopwatchCard(stopwatch, autoEdit = false) {
       </div>
     </div>
     <div class="timer-main-row">
-      <div class="timer-display">${stopwatch.formatTime(stopwatch.elapsedSeconds)}</div>
+      <div class="timer-time-container">
+        <div class="timer-display">${stopwatch.formatTime(stopwatch.elapsedSeconds)}</div>
+        <div class="timer-input-group hidden">
+          <input type="number" class="timer-input timer-input-hours" placeholder="時" min="0" max="999" value="">
+          <span class="timer-separator">:</span>
+          <input type="number" class="timer-input timer-input-minutes" placeholder="分" min="0" max="59" value="">
+          <span class="timer-separator">:</span>
+          <input type="number" class="timer-input timer-input-seconds" placeholder="秒" min="0" max="59" value="">
+        </div>
+      </div>
       <div class="timer-controls">
         <button class="toggle-btn" title="スタート"><span class="material-icons">play_arrow</span></button>
       </div>
@@ -539,6 +548,10 @@ function createStopwatchCard(stopwatch, autoEdit = false) {
   const targetSeconds = card.querySelector('.target-seconds');
   const toggleBtn = card.querySelector('.toggle-btn');
   const timerDisplay = card.querySelector('.timer-display');
+  const timerInputGroup = card.querySelector('.timer-input-group');
+  const timerInputHours = card.querySelector('.timer-input-hours');
+  const timerInputMinutes = card.querySelector('.timer-input-minutes');
+  const timerInputSeconds = card.querySelector('.timer-input-seconds');
   const timerMenuBtn = card.querySelector('.timer-menu-btn-top');
   
   // 編集モードの状態
@@ -555,6 +568,15 @@ function createStopwatchCard(stopwatch, autoEdit = false) {
     } else {
       targetDisplay.textContent = '--:--:--';
     }
+    
+    // タイマー入力フィールドの値を更新
+    const totalSeconds = stopwatch.elapsedSeconds;
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    timerInputHours.value = hours;
+    timerInputMinutes.value = minutes;
+    timerInputSeconds.value = seconds;
   };
   
   // 初期表示を更新
@@ -605,6 +627,42 @@ function createStopwatchCard(stopwatch, autoEdit = false) {
   targetHours.addEventListener('blur', () => validateTargetInput(targetHours, 23));
   targetMinutes.addEventListener('blur', () => validateTargetInput(targetMinutes, 59));
   targetSeconds.addEventListener('blur', () => validateTargetInput(targetSeconds, 59));
+
+  // タイマー入力のバリデーション関数
+  const validateTimerInput = (input, max) => {
+    let value = parseInt(input.value) || 0;
+    if (value < 0) value = 0;
+    if (value > max) value = max;
+    if (input.value !== '' && value !== parseInt(input.value)) {
+      input.value = value;
+    }
+  };
+
+  // タイマー時間の入力イベント
+  const updateTimerElapsed = () => {
+    // バリデーション
+    validateTimerInput(timerInputHours, 999);
+    validateTimerInput(timerInputMinutes, 59);
+    validateTimerInput(timerInputSeconds, 59);
+    
+    const hours = parseInt(timerInputHours.value) || 0;
+    const minutes = parseInt(timerInputMinutes.value) || 0;
+    const seconds = parseInt(timerInputSeconds.value) || 0;
+    
+    stopwatch.elapsedSeconds = hours * 3600 + minutes * 60 + seconds;
+    updateTimerDisplay();
+    updateTotalTime();
+    updateCategoryTime(stopwatch.categoryId);
+  };
+  
+  timerInputHours.addEventListener('input', updateTimerElapsed);
+  timerInputMinutes.addEventListener('input', updateTimerElapsed);
+  timerInputSeconds.addEventListener('input', updateTimerElapsed);
+  
+  // blurイベントでもバリデーション（フォーカスが外れた時）
+  timerInputHours.addEventListener('blur', () => validateTimerInput(timerInputHours, 999));
+  timerInputMinutes.addEventListener('blur', () => validateTimerInput(timerInputMinutes, 59));
+  timerInputSeconds.addEventListener('blur', () => validateTimerInput(timerInputSeconds, 59));
 
   // タイマー表示の更新（目標時間との比較も含む）
   const updateTimerDisplay = () => {
@@ -674,6 +732,8 @@ function createStopwatchCard(stopwatch, autoEdit = false) {
       taskNameInput.classList.remove('hidden');
       targetDisplay.classList.add('hidden');
       targetInputGroup.classList.remove('hidden');
+      timerDisplay.classList.add('hidden');
+      timerInputGroup.classList.remove('hidden');
       
       // inputの値を設定
       taskNameInput.value = stopwatch.taskName || '';
@@ -689,6 +749,14 @@ function createStopwatchCard(stopwatch, autoEdit = false) {
         targetMinutes.value = '';
         targetSeconds.value = '';
       }
+      
+      // タイマー入力フィールドの値を設定
+      const elapsedHours = Math.floor(stopwatch.elapsedSeconds / 3600);
+      const elapsedMinutes = Math.floor((stopwatch.elapsedSeconds % 3600) / 60);
+      const elapsedSecs = stopwatch.elapsedSeconds % 60;
+      timerInputHours.value = elapsedHours;
+      timerInputMinutes.value = elapsedMinutes;
+      timerInputSeconds.value = elapsedSecs;
       
       taskNameInput.focus();
       
@@ -707,6 +775,8 @@ function createStopwatchCard(stopwatch, autoEdit = false) {
       taskNameInput.classList.add('hidden');
       targetDisplay.classList.remove('hidden');
       targetInputGroup.classList.add('hidden');
+      timerDisplay.classList.remove('hidden');
+      timerInputGroup.classList.add('hidden');
       
       // 表示を更新
       updateDisplays();
