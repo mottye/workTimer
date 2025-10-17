@@ -13,6 +13,10 @@ let slackUsername = ''; // Slackに通知する際のユーザ名
 let slackWebhookEnabled = false; // Slack通知の有効/無効
 let alwaysOnTop = true; // 常に最前面に表示
 
+// 保存先と自動保存設定
+let saveLocation = ''; // 保存先パス
+let autoSaveEnabled = false; // 自動保存の有効/無効
+
 const { ipcRenderer } = require('electron');
 
 // 通知の許可をリクエスト
@@ -52,12 +56,19 @@ function loadAlwaysOnTopSetting() {
   console.log('Always On Top設定を読み込みました:', alwaysOnTop);
 }
 
-// 自動保存設定を読み込む
-function loadAutoSaveSetting() {
-  const savedSetting = localStorage.getItem('autoSaveEnabled');
-  if (savedSetting !== null) {
-    autoSaveEnabled = savedSetting === 'true';
+// 保存先と自動保存設定を読み込む
+function loadSaveSettings() {
+  const savedLocation = localStorage.getItem('saveLocation');
+  if (savedLocation) {
+    saveLocation = savedLocation;
   }
+  
+  const savedAutoSave = localStorage.getItem('autoSaveEnabled');
+  if (savedAutoSave !== null) {
+    autoSaveEnabled = savedAutoSave === 'true';
+  }
+  
+  console.log('保存先を読み込みました:', saveLocation);
   console.log('自動保存設定を読み込みました:', autoSaveEnabled);
 }
 
@@ -286,7 +297,7 @@ function renderCategories() {
 // 初期化時にURLと設定を読み込む
 loadSlackWebhookUrl();
 loadAlwaysOnTopSetting();
-loadAutoSaveSetting();
+loadSaveSettings();
 
 const menuBtn = document.getElementById('menuBtn');
 const dropdownMenu = document.getElementById('dropdownMenu');
@@ -1364,10 +1375,8 @@ const autoSaveEnabledCheckbox = document.getElementById('autoSaveEnabled');
 const saveLocationOk = document.getElementById('saveLocationOk');
 const saveLocationClose = document.getElementById('saveLocationClose');
 
-// 保存先パスと自動保存設定を保持
-let saveLocation = localStorage.getItem('saveLocation') || '';
-let tempSaveLocation = ''; // 一時的な保存先（OK押下前）
-let autoSaveEnabled = localStorage.getItem('autoSaveEnabled') === 'true'; // 自動保存の有効/無効
+// 一時的な保存先（OK押下前）
+let tempSaveLocation = '';
 
 // ダイアログを開く
 function openSlackWebhookDialog() {
