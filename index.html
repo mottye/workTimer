@@ -541,7 +541,7 @@
       display: flex;
       gap: 10px;
       margin-top: 20px;
-      justify-content: flex-end;
+      justify-content: center;
     }
 
     .dialog-btn {
@@ -572,6 +572,16 @@
 
     .dialog-btn-save:hover {
       background: #5568d3;
+    }
+
+    .dialog-save-container {
+      margin-top: 15px;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .dialog-save-container .dialog-btn {
+      min-width: 100px;
     }
 
     .dialog-slack-buttons {
@@ -1203,6 +1213,9 @@
           <span class="toggle-slider"></span>
         </label>
       </div>
+      <div class="dialog-save-container">
+        <button id="slackWebhookSave" class="dialog-btn dialog-btn-save">保存</button>
+      </div>
       <div class="dialog-slack-buttons">
         <button id="sendSlackNotificationScheduleBtn" class="dialog-slack-btn">
           <span class="material-icons">schedule_send</span>
@@ -1214,8 +1227,7 @@
         </button>
       </div>
       <div class="dialog-buttons">
-        <button id="slackWebhookCancel" class="dialog-btn dialog-btn-cancel">キャンセル</button>
-        <button id="slackWebhookSave" class="dialog-btn dialog-btn-save">保存</button>
+        <button id="slackWebhookCancel" class="dialog-btn dialog-btn-cancel">閉じる</button>
       </div>
     </div>
   </div>
