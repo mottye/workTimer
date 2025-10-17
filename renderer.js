@@ -16,6 +16,7 @@ let alwaysOnTop = true; // 常に最前面に表示
 // 保存先と自動保存設定
 let saveLocation = ''; // 保存先パス
 let autoSaveEnabled = false; // 自動保存の有効/無効
+let autoSaveTimer = null; // 自動保存タイマー
 
 const { ipcRenderer } = require('electron');
 
@@ -70,11 +71,16 @@ function loadSaveSettings() {
   
   console.log('保存先を読み込みました:', saveLocation);
   console.log('自動保存設定を読み込みました:', autoSaveEnabled);
+  
+  // 自動保存が有効な場合、タイマーを開始
+  if (autoSaveEnabled && saveLocation) {
+    startAutoSaveTimer();
+  }
 }
 
-// データエクスポート関数
-async function exportData() {
-  const data = {
+// データを生成する共通関数
+function generateSaveData() {
+  return {
     version: '1.0',
     exportDate: new Date().toISOString(),
     categories: categories.map(cat => ({
@@ -93,6 +99,66 @@ async function exportData() {
     nextCategoryId: nextCategoryId,
     nextStopwatchId: nextStopwatchId
   };
+}
+
+// 自動保存タイマーを開始
+function startAutoSaveTimer() {
+  // 既存のタイマーがあればクリア
+  if (autoSaveTimer) {
+    clearInterval(autoSaveTimer);
+  }
+  
+  // 15分 = 900000ミリ秒
+  const INTERVAL = 15 * 60 * 1000;
+  
+  console.log('自動保存タイマーを開始しました（15分間隔）');
+  
+  // 15分ごとに自動保存を実行
+  autoSaveTimer = setInterval(() => {
+    performAutoSave();
+  }, INTERVAL);
+}
+
+// 自動保存タイマーを停止
+function stopAutoSaveTimer() {
+  if (autoSaveTimer) {
+    clearInterval(autoSaveTimer);
+    autoSaveTimer = null;
+    console.log('自動保存タイマーを停止しました');
+  }
+}
+
+// 自動保存を実行
+async function performAutoSave() {
+  // 自動保存が無効、または保存先が未設定の場合はスキップ
+  if (!autoSaveEnabled || !saveLocation) {
+    console.log('自動保存をスキップ: 無効または保存先未設定');
+    return;
+  }
+  
+  try {
+    const data = generateSaveData();
+    const jsonString = JSON.stringify(data, null, 2);
+    
+    // IPCを使って自動保存
+    const result = await ipcRenderer.invoke('auto-save-data', {
+      saveLocation: saveLocation,
+      data: jsonString
+    });
+    
+    if (result.success) {
+      console.log('自動保存しました:', result.filePath);
+    } else {
+      console.error('自動保存に失敗しました:', result.error);
+    }
+  } catch (error) {
+    console.error('自動保存中にエラーが発生しました:', error);
+  }
+}
+
+// データエクスポート関数
+async function exportData() {
+  const data = generateSaveData();
   
   const jsonString = JSON.stringify(data, null, 2);
   
@@ -1485,6 +1551,15 @@ if (saveLocationOk) {
       if (message) message += '\n\n';
       message += `自動保存を${autoSaveEnabled ? '有効' : '無効'}にしました`;
       console.log('自動保存設定を変更しました:', autoSaveEnabled);
+    }
+    
+    // 自動保存タイマーを制御
+    if (autoSaveEnabled && saveLocation) {
+      // 自動保存を有効にする
+      startAutoSaveTimer();
+    } else {
+      // 自動保存を無効にする
+      stopAutoSaveTimer();
     }
     
     if (hasChanges) {

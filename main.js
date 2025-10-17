@@ -79,6 +79,24 @@ ipcMain.handle('select-save-location', async (event) => {
   return result.filePaths[0];
 });
 
+// 自動保存用のIPCハンドラ（ダイアログなし）
+ipcMain.handle('auto-save-data', async (event, { saveLocation, data }) => {
+  try {
+    // ファイル名を生成（タイムスタンプ付き）
+    const now = new Date();
+    const filename = `autosave_${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}.json`;
+    const filePath = path.join(saveLocation, filename);
+    
+    // データを保存
+    fs.writeFileSync(filePath, data, 'utf8');
+    
+    return { success: true, filePath: filePath };
+  } catch (error) {
+    console.error('自動保存エラー:', error);
+    return { success: false, error: error.message };
+  }
+});
+
 app.whenReady().then(() => {
   createWindow();
 
