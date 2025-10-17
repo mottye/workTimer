@@ -833,6 +833,18 @@
       animation: pulse 2s infinite;
     }
 
+    .timer-card.completed {
+      background: #e5e7eb;
+      opacity: 0.7;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .timer-card.completed .timer-display,
+    .timer-card.completed .task-name-display,
+    .timer-card.completed .target-display {
+      color: #9ca3af;
+    }
+
     @keyframes pulse {
       0%, 100% {
         box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
@@ -1004,6 +1016,29 @@
 
     .confirm-btn:hover:not(:disabled) {
       background: #0284c7 !important;
+    }
+
+    .complete-btn {
+      background: #6b7280;
+      color: white;
+    }
+
+    .complete-btn:hover:not(:disabled) {
+      background: #4b5563;
+      transform: scale(1.1);
+    }
+
+    .complete-btn.active {
+      background: #10b981;
+      color: white;
+    }
+
+    .complete-btn.active:hover {
+      background: #059669;
+    }
+
+    .complete-btn .material-icons {
+      font-size: 18px;
     }
 
     /* オーバーレイメニュー */

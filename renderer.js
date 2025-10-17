@@ -67,7 +67,8 @@ async function exportData() {
       categoryId: sw.categoryId,
       taskName: sw.taskName,
       elapsedSeconds: sw.elapsedSeconds,
-      targetSeconds: sw.targetSeconds
+      targetSeconds: sw.targetSeconds,
+      isCompleted: sw.isCompleted
     })),
     nextCategoryId: nextCategoryId,
     nextStopwatchId: nextStopwatchId
@@ -165,6 +166,7 @@ function importData() {
           stopwatch.elapsedSeconds = swData.elapsedSeconds || 0;
           // targetSecondsは null の可能性があるので || 0 を使わない
           stopwatch.targetSeconds = swData.targetSeconds !== undefined ? swData.targetSeconds : null;
+          stopwatch.isCompleted = swData.isCompleted || false;
           // 確実に停止状態にする
           stopwatch.isRunning = false;
           stopwatch.isPaused = false;
@@ -180,6 +182,20 @@ function importData() {
       // 全てのカードから running クラスを削除（念のため）
       document.querySelectorAll('.timer-card').forEach(card => {
         card.classList.remove('running');
+      });
+      
+      // 作業完了状態を復元
+      stopwatches.forEach(sw => {
+        if (sw.isCompleted) {
+          const card = document.querySelector(`.timer-card[data-timer-id="${sw.id}"]`);
+          if (card) {
+            card.classList.add('completed');
+            const toggleBtn = card.querySelector('.toggle-btn');
+            const completeBtn = card.querySelector('.complete-btn');
+            if (toggleBtn) toggleBtn.disabled = true;
+            if (completeBtn) completeBtn.classList.add('active');
+          }
+        }
       });
       
       // 全てのタイマーのボタン表示を更新
@@ -302,9 +318,15 @@ class Stopwatch {
     this.taskName = ''; // タスク名
     this.targetSeconds = null; // 目標時間（秒）
     this.targetReached = false; // 目標達成フラグ
+    this.isCompleted = false; // 作業完了フラグ
   }
 
   start() {
+    // 作業完了している場合は開始できない
+    if (this.isCompleted) {
+      return;
+    }
+
     // 他のストップウォッチが動作中なら停止させる
     if (currentRunningStopwatchId !== null && currentRunningStopwatchId !== this.id) {
       const runningStopwatch = stopwatches.find(sw => sw.id === currentRunningStopwatchId);
@@ -505,6 +527,7 @@ function createStopwatchCard(stopwatch, autoEdit = false) {
       <div class="timer-display">${stopwatch.formatTime(stopwatch.elapsedSeconds)}</div>
       <div class="timer-controls">
         <button class="toggle-btn" title="スタート"><span class="material-icons">play_arrow</span></button>
+        <button class="complete-btn" title="作業完了"><span class="material-icons">check_circle</span></button>
       </div>
     </div>
   `;
@@ -518,6 +541,7 @@ function createStopwatchCard(stopwatch, autoEdit = false) {
   const targetMinutes = card.querySelector('.target-minutes');
   const targetSeconds = card.querySelector('.target-seconds');
   const toggleBtn = card.querySelector('.toggle-btn');
+  const completeBtn = card.querySelector('.complete-btn');
   const timerDisplay = card.querySelector('.timer-display');
   const timerMenuBtn = card.querySelector('.timer-menu-btn-top');
   
@@ -640,6 +664,27 @@ function createStopwatchCard(stopwatch, autoEdit = false) {
       // 停止中なら開始
       stopwatch.start();
     }
+    updateToggleButton();
+  });
+
+  // 作業完了ボタン
+  completeBtn.addEventListener('click', () => {
+    stopwatch.isCompleted = !stopwatch.isCompleted;
+    
+    // 作業完了した場合、タイマーを停止
+    if (stopwatch.isCompleted) {
+      if (stopwatch.isRunning) {
+        stopwatch.pause();
+      }
+      card.classList.add('completed');
+      toggleBtn.disabled = true;
+      completeBtn.classList.add('active');
+    } else {
+      card.classList.remove('completed');
+      toggleBtn.disabled = false;
+      completeBtn.classList.remove('active');
+    }
+    
     updateToggleButton();
   });
 
