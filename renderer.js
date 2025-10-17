@@ -52,6 +52,15 @@ function loadAlwaysOnTopSetting() {
   console.log('Always On Top設定を読み込みました:', alwaysOnTop);
 }
 
+// 自動保存設定を読み込む
+function loadAutoSaveSetting() {
+  const savedSetting = localStorage.getItem('autoSaveEnabled');
+  if (savedSetting !== null) {
+    autoSaveEnabled = savedSetting === 'true';
+  }
+  console.log('自動保存設定を読み込みました:', autoSaveEnabled);
+}
+
 // データエクスポート関数
 async function exportData() {
   const data = {
@@ -277,6 +286,7 @@ function renderCategories() {
 // 初期化時にURLと設定を読み込む
 loadSlackWebhookUrl();
 loadAlwaysOnTopSetting();
+loadAutoSaveSetting();
 
 const menuBtn = document.getElementById('menuBtn');
 const dropdownMenu = document.getElementById('dropdownMenu');
@@ -1350,12 +1360,14 @@ const dataManagementClose = document.getElementById('dataManagementClose');
 const saveLocationDialog = document.getElementById('saveLocationDialog');
 const saveLocationPath = document.getElementById('saveLocationPath');
 const selectSaveLocationBtn = document.getElementById('selectSaveLocationBtn');
+const autoSaveEnabledCheckbox = document.getElementById('autoSaveEnabled');
 const saveLocationOk = document.getElementById('saveLocationOk');
 const saveLocationClose = document.getElementById('saveLocationClose');
 
-// 保存先パスを保持
+// 保存先パスと自動保存設定を保持
 let saveLocation = localStorage.getItem('saveLocation') || '';
 let tempSaveLocation = ''; // 一時的な保存先（OK押下前）
+let autoSaveEnabled = localStorage.getItem('autoSaveEnabled') === 'true'; // 自動保存の有効/無効
 
 // ダイアログを開く
 function openSlackWebhookDialog() {
@@ -1379,6 +1391,8 @@ function openSaveLocationDialog() {
   // 現在の保存先を表示
   tempSaveLocation = saveLocation;
   saveLocationPath.value = saveLocation || '';
+  // 自動保存トグルの状態を設定
+  autoSaveEnabledCheckbox.checked = autoSaveEnabled;
   saveLocationDialog.classList.remove('hidden');
 }
 
@@ -1442,12 +1456,32 @@ if (selectSaveLocationBtn) {
 // 保存先設定OKボタン
 if (saveLocationOk) {
   saveLocationOk.addEventListener('click', () => {
+    let hasChanges = false;
+    let message = '';
+    
+    // 保存先の変更をチェック
     if (tempSaveLocation && tempSaveLocation !== saveLocation) {
-      // 変更があった場合のみ保存
       saveLocation = tempSaveLocation;
       localStorage.setItem('saveLocation', saveLocation);
-      alert(`保存先を設定しました:\n${saveLocation}`);
+      hasChanges = true;
+      message += `保存先を設定しました:\n${saveLocation}`;
     }
+    
+    // 自動保存の設定を保存
+    const newAutoSaveEnabled = autoSaveEnabledCheckbox.checked;
+    if (newAutoSaveEnabled !== autoSaveEnabled) {
+      autoSaveEnabled = newAutoSaveEnabled;
+      localStorage.setItem('autoSaveEnabled', autoSaveEnabled.toString());
+      hasChanges = true;
+      if (message) message += '\n\n';
+      message += `自動保存を${autoSaveEnabled ? '有効' : '無効'}にしました`;
+      console.log('自動保存設定を変更しました:', autoSaveEnabled);
+    }
+    
+    if (hasChanges) {
+      alert(message);
+    }
+    
     closeSaveLocationDialog();
   });
 }
