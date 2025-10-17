@@ -1350,10 +1350,12 @@ const dataManagementClose = document.getElementById('dataManagementClose');
 const saveLocationDialog = document.getElementById('saveLocationDialog');
 const saveLocationPath = document.getElementById('saveLocationPath');
 const selectSaveLocationBtn = document.getElementById('selectSaveLocationBtn');
+const saveLocationOk = document.getElementById('saveLocationOk');
 const saveLocationClose = document.getElementById('saveLocationClose');
 
 // 保存先パスを保持
 let saveLocation = localStorage.getItem('saveLocation') || '';
+let tempSaveLocation = ''; // 一時的な保存先（OK押下前）
 
 // ダイアログを開く
 function openSlackWebhookDialog() {
@@ -1374,6 +1376,8 @@ function closeSlackWebhookDialog() {
 
 // 保存先設定ダイアログを開く
 function openSaveLocationDialog() {
+  // 現在の保存先を表示
+  tempSaveLocation = saveLocation;
   saveLocationPath.value = saveLocation || '';
   saveLocationDialog.classList.remove('hidden');
 }
@@ -1381,6 +1385,8 @@ function openSaveLocationDialog() {
 // 保存先設定ダイアログを閉じる
 function closeSaveLocationDialog() {
   saveLocationDialog.classList.add('hidden');
+  // 一時保存先をクリア
+  tempSaveLocation = '';
 }
 
 // Slack Webhook URL設定メニュー
@@ -1422,15 +1428,27 @@ if (selectSaveLocationBtn) {
     try {
       const result = await ipcRenderer.invoke('select-save-location');
       if (result) {
-        saveLocation = result;
-        saveLocationPath.value = saveLocation;
-        localStorage.setItem('saveLocation', saveLocation);
-        alert(`保存先を設定しました:\n${saveLocation}`);
+        // 一時的に保存先を保持（OKボタンを押すまで確定しない）
+        tempSaveLocation = result;
+        saveLocationPath.value = tempSaveLocation;
       }
     } catch (error) {
       console.error('保存先選択エラー:', error);
       alert('保存先の選択に失敗しました');
     }
+  });
+}
+
+// 保存先設定OKボタン
+if (saveLocationOk) {
+  saveLocationOk.addEventListener('click', () => {
+    if (tempSaveLocation && tempSaveLocation !== saveLocation) {
+      // 変更があった場合のみ保存
+      saveLocation = tempSaveLocation;
+      localStorage.setItem('saveLocation', saveLocation);
+      alert(`保存先を設定しました:\n${saveLocation}`);
+    }
+    closeSaveLocationDialog();
   });
 }
 
