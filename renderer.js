@@ -191,9 +191,7 @@ function importData() {
           if (card) {
             card.classList.add('completed');
             const toggleBtn = card.querySelector('.toggle-btn');
-            const completeBtn = card.querySelector('.complete-btn');
             if (toggleBtn) toggleBtn.disabled = true;
-            if (completeBtn) completeBtn.classList.add('active');
           }
         }
       });
@@ -527,7 +525,6 @@ function createStopwatchCard(stopwatch, autoEdit = false) {
       <div class="timer-display">${stopwatch.formatTime(stopwatch.elapsedSeconds)}</div>
       <div class="timer-controls">
         <button class="toggle-btn" title="スタート"><span class="material-icons">play_arrow</span></button>
-        <button class="complete-btn" title="作業完了"><span class="material-icons">check_circle</span></button>
       </div>
     </div>
   `;
@@ -541,7 +538,6 @@ function createStopwatchCard(stopwatch, autoEdit = false) {
   const targetMinutes = card.querySelector('.target-minutes');
   const targetSeconds = card.querySelector('.target-seconds');
   const toggleBtn = card.querySelector('.toggle-btn');
-  const completeBtn = card.querySelector('.complete-btn');
   const timerDisplay = card.querySelector('.timer-display');
   const timerMenuBtn = card.querySelector('.timer-menu-btn-top');
   
@@ -667,26 +663,6 @@ function createStopwatchCard(stopwatch, autoEdit = false) {
     updateToggleButton();
   });
 
-  // 作業完了ボタン
-  completeBtn.addEventListener('click', () => {
-    stopwatch.isCompleted = !stopwatch.isCompleted;
-    
-    // 作業完了した場合、タイマーを停止
-    if (stopwatch.isCompleted) {
-      if (stopwatch.isRunning) {
-        stopwatch.pause();
-      }
-      card.classList.add('completed');
-      toggleBtn.disabled = true;
-      completeBtn.classList.add('active');
-    } else {
-      card.classList.remove('completed');
-      toggleBtn.disabled = false;
-      completeBtn.classList.remove('active');
-    }
-    
-    updateToggleButton();
-  });
 
   // 編集モードの切り替え関数
   const toggleEditMode = () => {
@@ -1848,6 +1824,10 @@ function showTimerOverlayMenu(stopwatch, button, toggleEditModeCallback) {
       <span class="material-icons">edit</span>
       <span>編集</span>
     </div>
+    <div class="menu-item timer-complete-item">
+      <span class="material-icons">check_circle</span>
+      <span>${stopwatch.isCompleted ? '作業完了を解除' : '作業完了'}</span>
+    </div>
     <div class="menu-item timer-clear-item">
       <span class="material-icons">refresh</span>
       <span>リセット</span>
@@ -1874,6 +1854,7 @@ function showTimerOverlayMenu(stopwatch, button, toggleEditModeCallback) {
   
   // メニュー項目のイベントリスナー
   const editItem = menu.querySelector('.timer-edit-item');
+  const completeItem = menu.querySelector('.timer-complete-item');
   const clearItem = menu.querySelector('.timer-clear-item');
   const deleteItem = menu.querySelector('.timer-delete-item');
   
@@ -1884,6 +1865,44 @@ function showTimerOverlayMenu(stopwatch, button, toggleEditModeCallback) {
     // 編集モードを切り替え
     if (toggleEditModeCallback) {
       toggleEditModeCallback();
+    }
+  });
+  
+  completeItem.addEventListener('click', (e) => {
+    e.stopPropagation();
+    overlay.remove();
+    
+    const taskName = stopwatch.taskName || 'タスク名なし';
+    const action = stopwatch.isCompleted ? '作業完了を解除' : '作業完了';
+    const confirmMessage = `「${taskName}」を${action}しますか？`;
+    
+    if (confirm(confirmMessage)) {
+      stopwatch.isCompleted = !stopwatch.isCompleted;
+      
+      const card = document.querySelector(`.timer-card[data-timer-id="${stopwatch.id}"]`);
+      const toggleBtn = card.querySelector('.toggle-btn');
+      
+      // 作業完了した場合、タイマーを停止
+      if (stopwatch.isCompleted) {
+        if (stopwatch.isRunning) {
+          stopwatch.pause();
+        }
+        card.classList.add('completed');
+        toggleBtn.disabled = true;
+      } else {
+        card.classList.remove('completed');
+        toggleBtn.disabled = false;
+      }
+      
+      // ボタン表示を更新
+      const icon = toggleBtn.querySelector('.material-icons');
+      if (stopwatch.isRunning && !stopwatch.isPaused) {
+        icon.textContent = 'pause';
+        toggleBtn.title = '一時停止';
+      } else {
+        icon.textContent = 'play_arrow';
+        toggleBtn.title = 'スタート';
+      }
     }
   });
   
