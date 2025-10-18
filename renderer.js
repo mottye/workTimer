@@ -1710,13 +1710,7 @@ dataManagementDialog.addEventListener('click', (e) => {
 async function sendSlackNotificationSchedule() {
   // Slack Webhook URLが設定されているか確認
   if (!slackWebhookUrl) {
-    alert('Slack Webhook URLが設定されていません。\n\nメインメニューから「Slack WebhookURLを追加」で設定してください。');
-    return;
-  }
-  
-  // Slack通知が有効になっているか確認
-  if (!slackWebhookEnabled) {
-    alert('Slack通知が無効になっています。\n\nメインメニューの「Slack WebhookURLを追加」から有効にしてください。');
+    alert('Slack Webhook URLが設定されていません。\n\nメインメニューから「Slack連携」で設定してください。');
     return;
   }
   
@@ -1802,13 +1796,7 @@ async function sendSlackNotificationSchedule() {
 async function sendSlackNotificationActual() {
   // Slack Webhook URLが設定されているか確認
   if (!slackWebhookUrl) {
-    alert('Slack Webhook URLが設定されていません。\n\nメインメニューから「Slack WebhookURLを追加」で設定してください。');
-    return;
-  }
-  
-  // Slack通知が有効になっているか確認
-  if (!slackWebhookEnabled) {
-    alert('Slack通知が無効になっています。\n\nメインメニューの「Slack WebhookURLを追加」から有効にしてください。');
+    alert('Slack Webhook URLが設定されていません。\n\nメインメニューから「Slack連携」で設定してください。');
     return;
   }
   
@@ -2021,6 +2009,9 @@ slackWebhookSave.addEventListener('click', () => {
   slackWebhookEnabled = isEnabled;
   localStorage.setItem('slackWebhookEnabled', slackWebhookEnabled.toString());
   console.log('Slack Webhook有効状態を保存しました:', slackWebhookEnabled);
+  
+  // 成功メッセージを表示
+  alert('✅ Slack連携設定を保存しました');
   
   closeSlackWebhookDialog();
 });
