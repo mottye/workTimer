@@ -2181,9 +2181,6 @@ if (executeImportBtn) {
             const category = new Category(newCategoryId, catData.name);
             category.isCollapsed = catData.isCollapsed || false;
             categories.push(category);
-
-            // カテゴリカードを作成
-            createCategoryCard(category);
           });
 
           // タイマーをインポート
@@ -2206,8 +2203,48 @@ if (executeImportBtn) {
             stopwatches.push(stopwatch);
           });
 
-          // UIを更新
-          renderAllTimers();
+          // UIを完全にクリアして再構築
+          timersContainer.innerHTML = '';
+          
+          // 空の状態をチェック
+          if (categories.length === 0 && stopwatches.length === 0) {
+            const emptyState = document.createElement('div');
+            emptyState.className = 'empty-state';
+            emptyState.textContent = '「カテゴリを追加」からスタート';
+            timersContainer.appendChild(emptyState);
+          } else {
+            // カテゴリコンテナを作成
+            categories.forEach(category => {
+              const categoryContainer = createCategoryContainer(category);
+              timersContainer.appendChild(categoryContainer);
+              
+              // このカテゴリに所属するタイマーを追加
+              const categoryTimers = categoryContainer.querySelector('.category-timers');
+              const categoryStopwatches = stopwatches.filter(sw => sw.categoryId === category.id);
+              
+              if (categoryStopwatches.length > 0) {
+                // 空の状態メッセージを削除
+                const emptyState = categoryTimers.querySelector('.category-empty-state');
+                if (emptyState) {
+                  emptyState.remove();
+                }
+                
+                // タイマーカードを追加
+                categoryStopwatches.forEach(stopwatch => {
+                  const card = createStopwatchCard(stopwatch);
+                  categoryTimers.appendChild(card);
+                });
+              }
+            });
+            
+            // カテゴリに所属しないタイマーを作成
+            stopwatches.filter(sw => sw.categoryId === null).forEach(stopwatch => {
+              const card = createStopwatchCard(stopwatch);
+              timersContainer.appendChild(card);
+            });
+          }
+          
+          // 合計時間を更新
           updateTotalTime();
           updateTargetTotalTime();
           updateAllCategoryTimes();
