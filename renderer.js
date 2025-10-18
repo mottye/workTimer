@@ -11,6 +11,7 @@ let nextCategoryId = 1;
 let slackWebhookUrl = null;
 let slackUsername = ''; // Slackに通知する際のユーザ名
 let slackWebhookEnabled = false; // Slack通知の有効/無効
+let apiKey = ''; // AI APIキー
 let alwaysOnTop = true; // 常に最前面に表示
 
 // 保存先と自動保存設定
@@ -43,6 +44,15 @@ function loadSlackWebhookUrl() {
   if (savedEnabled !== null) {
     slackWebhookEnabled = savedEnabled === 'true';
     console.log('Slack Webhook有効状態を読み込みました:', slackWebhookEnabled);
+  }
+}
+
+// AI APIキーを読み込む
+function loadApiKey() {
+  const savedApiKey = localStorage.getItem('aiApiKey');
+  if (savedApiKey) {
+    apiKey = savedApiKey;
+    console.log('AI APIキーを読み込みました');
   }
 }
 
@@ -362,6 +372,7 @@ function renderCategories() {
 
 // 初期化時にURLと設定を読み込む
 loadSlackWebhookUrl();
+loadApiKey();
 loadAlwaysOnTopSetting();
 loadSaveSettings();
 
@@ -370,6 +381,7 @@ const dropdownMenu = document.getElementById('dropdownMenu');
 const addCategoryMenuItem = document.getElementById('addCategoryMenuItem');
 const addTimerMenuItem = document.getElementById('addTimerMenuItem');
 const setSlackWebhookMenuItem = document.getElementById('setSlackWebhookMenuItem');
+const setApiKeyMenuItem = document.getElementById('setApiKeyMenuItem');
 const saveLocationMenuItem = document.getElementById('saveLocationMenuItem');
 const clearAllMenuItem = document.getElementById('clearAllMenuItem');
 const alwaysOnTopToggle = document.getElementById('alwaysOnTopToggle');
@@ -1448,6 +1460,13 @@ const slackWebhookCancel = document.getElementById('slackWebhookCancel');
 const sendSlackNotificationScheduleBtn = document.getElementById('sendSlackNotificationScheduleBtn');
 const sendSlackNotificationActualBtn = document.getElementById('sendSlackNotificationActualBtn');
 
+// AI APIキー設定ダイアログ
+const apiKeyDialog = document.getElementById('apiKeyDialog');
+const apiKeyInput = document.getElementById('apiKeyInput');
+const apiKeySaveMessage = document.getElementById('apiKeySaveMessage');
+const apiKeyOk = document.getElementById('apiKeyOk');
+const apiKeyCancel = document.getElementById('apiKeyCancel');
+
 // 保存先設定ダイアログ
 const saveLocationDialog = document.getElementById('saveLocationDialog');
 const saveLocationPath = document.getElementById('saveLocationPath');
@@ -1476,6 +1495,21 @@ function closeSlackWebhookDialog() {
   slackUsernameInput.value = '';
 }
 
+// AI APIキーダイアログを開く
+function openApiKeyDialog() {
+  apiKeyInput.value = apiKey || '';
+  apiKeySaveMessage.classList.add('hidden'); // 成功メッセージを非表示
+  apiKeyDialog.classList.remove('hidden');
+  apiKeyInput.focus();
+  dropdownMenu.classList.add('hidden');
+}
+
+// AI APIキーダイアログを閉じる
+function closeApiKeyDialog() {
+  apiKeyDialog.classList.add('hidden');
+  apiKeySaveMessage.classList.add('hidden'); // 成功メッセージを非表示
+}
+
 // 保存先設定ダイアログを開く
 function openSaveLocationDialog() {
   // 現在の保存先を表示
@@ -1497,6 +1531,13 @@ function closeSaveLocationDialog() {
 if (setSlackWebhookMenuItem) {
   setSlackWebhookMenuItem.addEventListener('click', () => {
     openSlackWebhookDialog();
+  });
+}
+
+// AI APIキー設定メニュー
+if (setApiKeyMenuItem) {
+  setApiKeyMenuItem.addEventListener('click', () => {
+    openApiKeyDialog();
   });
 }
 
@@ -1966,6 +2007,45 @@ slackWebhookInput.addEventListener('keypress', (e) => {
     slackWebhookSave.click();
   }
 });
+
+// AI APIキー設定のイベントリスナー
+if (apiKeyOk) {
+  apiKeyOk.addEventListener('click', () => {
+    const newApiKey = apiKeyInput.value.trim();
+    
+    // APIキーを保存
+    apiKey = newApiKey;
+    localStorage.setItem('aiApiKey', apiKey);
+    console.log('AI APIキーを保存しました');
+    
+    // 成功メッセージを表示
+    apiKeySaveMessage.classList.remove('hidden');
+  });
+}
+
+if (apiKeyCancel) {
+  apiKeyCancel.addEventListener('click', () => {
+    closeApiKeyDialog();
+  });
+}
+
+// オーバーレイクリックで閉じる
+if (apiKeyDialog) {
+  apiKeyDialog.addEventListener('click', (e) => {
+    if (e.target === apiKeyDialog) {
+      closeApiKeyDialog();
+    }
+  });
+}
+
+// Enterキーで保存
+if (apiKeyInput) {
+  apiKeyInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      apiKeyOk.click();
+    }
+  });
+}
 
 // Always On Topトグルのイベント
 alwaysOnTopToggle.addEventListener('change', (e) => {

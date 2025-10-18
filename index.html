@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ワークタイマ v1.1.0</title>
+  <title>workTimer EX v2.0.0</title>
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <style>
     * {
@@ -582,6 +582,20 @@
 
     .dialog-save-container .dialog-btn {
       min-width: 100px;
+    }
+
+    .dialog-save-message {
+      margin-top: 10px;
+      padding: 10px;
+      background: #d4edda;
+      color: #155724;
+      border-radius: 4px;
+      font-size: 14px;
+      text-align: center;
+    }
+
+    .dialog-save-message.hidden {
+      display: none;
     }
 
     .dialog-slack-buttons {
@@ -1203,6 +1217,10 @@
           <span class="material-icons">settings</span>
           <span>Slack連携</span>
         </div>
+        <div class="menu-item" id="setApiKeyMenuItem">
+          <span class="material-icons">vpn_key</span>
+          <span>AI APIキー設定</span>
+        </div>
         <div class="menu-item" id="saveLocationMenuItem">
           <span class="material-icons">folder_open</span>
           <span>保存先設定</span>
@@ -1266,6 +1284,19 @@
       </div>
       <div class="dialog-buttons">
         <button id="slackWebhookCancel" class="dialog-btn dialog-btn-cancel">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI APIキー設定ダイアログ -->
+  <div id="apiKeyDialog" class="dialog-overlay hidden">
+    <div class="dialog-box">
+      <h3 class="dialog-title">AI APIキー設定</h3>
+      <input type="password" id="apiKeyInput" class="dialog-input" placeholder="APIキーを入力してください">
+      <div id="apiKeySaveMessage" class="dialog-save-message hidden">✅ 保存に成功しました</div>
+      <div class="dialog-buttons">
+        <button id="apiKeyOk" class="dialog-btn dialog-btn-save">OK</button>
+        <button id="apiKeyCancel" class="dialog-btn dialog-btn-cancel">閉じる</button>
       </div>
     </div>
   </div>
