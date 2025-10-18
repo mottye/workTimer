@@ -1429,8 +1429,6 @@ const sendSlackNotificationActualBtn = document.getElementById('sendSlackNotific
 // データ管理ダイアログ
 const dataManagementDialog = document.getElementById('dataManagementDialog');
 const exportCsvBtn = document.getElementById('exportCsvBtn');
-const exportDataBtn = document.getElementById('exportDataBtn');
-const importDataBtn = document.getElementById('importDataBtn');
 const dataManagementClose = document.getElementById('dataManagementClose');
 
 // 保存先設定ダイアログ
@@ -1669,20 +1667,6 @@ function exportToCsv() {
 if (exportCsvBtn) {
   exportCsvBtn.addEventListener('click', () => {
     exportToCsv();
-    closeDataManagementDialog();
-  });
-}
-
-if (exportDataBtn) {
-  exportDataBtn.addEventListener('click', () => {
-    exportData();
-    closeDataManagementDialog();
-  });
-}
-
-if (importDataBtn) {
-  importDataBtn.addEventListener('click', () => {
-    importData();
     closeDataManagementDialog();
   });
 }
