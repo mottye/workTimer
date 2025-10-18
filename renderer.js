@@ -1660,9 +1660,11 @@ if (saveLocationOk) {
       stopAutoSaveTimer();
     }
     
+    // 成功メッセージを表示（変更の有無に関わらず）
     if (hasChanges) {
-      // 成功メッセージを表示（alertのみ閉じて、ダイアログは開いたまま）
       alert(message);
+    } else {
+      alert('✅ 設定を保存しました');
     }
   });
 }
