@@ -584,20 +584,6 @@
       min-width: 100px;
     }
 
-    .dialog-save-message {
-      margin-top: 10px;
-      padding: 10px;
-      background: #d4edda;
-      color: #155724;
-      border-radius: 4px;
-      font-size: 14px;
-      text-align: center;
-    }
-
-    .dialog-save-message.hidden {
-      display: none;
-    }
-
     .dialog-slack-buttons {
       display: flex;
       flex-direction: column;
@@ -1293,7 +1279,6 @@
     <div class="dialog-box">
       <h3 class="dialog-title">AI APIキー設定</h3>
       <input type="password" id="apiKeyInput" class="dialog-input" placeholder="APIキーを入力してください">
-      <div id="apiKeySaveMessage" class="dialog-save-message hidden">✅ 保存に成功しました</div>
       <div class="dialog-buttons">
         <button id="apiKeyOk" class="dialog-btn dialog-btn-save">OK</button>
         <button id="apiKeyCancel" class="dialog-btn dialog-btn-cancel">閉じる</button>

@@ -1463,7 +1463,6 @@ const sendSlackNotificationActualBtn = document.getElementById('sendSlackNotific
 // AI APIキー設定ダイアログ
 const apiKeyDialog = document.getElementById('apiKeyDialog');
 const apiKeyInput = document.getElementById('apiKeyInput');
-const apiKeySaveMessage = document.getElementById('apiKeySaveMessage');
 const apiKeyOk = document.getElementById('apiKeyOk');
 const apiKeyCancel = document.getElementById('apiKeyCancel');
 
@@ -1498,7 +1497,6 @@ function closeSlackWebhookDialog() {
 // AI APIキーダイアログを開く
 function openApiKeyDialog() {
   apiKeyInput.value = apiKey || '';
-  apiKeySaveMessage.classList.add('hidden'); // 成功メッセージを非表示
   apiKeyDialog.classList.remove('hidden');
   apiKeyInput.focus();
   dropdownMenu.classList.add('hidden');
@@ -1507,7 +1505,6 @@ function openApiKeyDialog() {
 // AI APIキーダイアログを閉じる
 function closeApiKeyDialog() {
   apiKeyDialog.classList.add('hidden');
-  apiKeySaveMessage.classList.add('hidden'); // 成功メッセージを非表示
 }
 
 // 保存先設定ダイアログを開く
@@ -2018,8 +2015,8 @@ if (apiKeyOk) {
     localStorage.setItem('aiApiKey', apiKey);
     console.log('AI APIキーを保存しました');
     
-    // 成功メッセージを表示
-    apiKeySaveMessage.classList.remove('hidden');
+    // alertダイアログを表示
+    alert('✅ 保存に成功しました');
   });
 }
 
