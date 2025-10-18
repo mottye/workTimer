@@ -385,7 +385,6 @@ const addCategoryMenuItem = document.getElementById('addCategoryMenuItem');
 const addTimerMenuItem = document.getElementById('addTimerMenuItem');
 const settingsMenuItem = document.getElementById('settingsMenuItem');
 const slackNotificationMenuItem = document.getElementById('slackNotificationMenuItem');
-const clearAllMenuItem = document.getElementById('clearAllMenuItem');
 const alwaysOnTopToggle = document.getElementById('alwaysOnTopToggle');
 const opacitySlider = document.getElementById('opacitySlider');
 const opacityValue = document.getElementById('opacityValue');
@@ -1570,64 +1569,6 @@ if (settingsMenuItem) {
 if (slackNotificationMenuItem) {
   slackNotificationMenuItem.addEventListener('click', () => {
     openSlackNotificationDialog();
-  });
-}
-
-// 全て削除メニュー
-if (clearAllMenuItem) {
-  clearAllMenuItem.addEventListener('click', () => {
-    // 確認ダイアログを表示
-    const categoryCount = categories.length;
-    const timerCount = stopwatches.length;
-    
-    if (categoryCount === 0 && timerCount === 0) {
-      alert('削除するデータがありません。');
-      dropdownMenu.classList.add('hidden');
-      return;
-    }
-    
-    let confirmMessage = '全てのデータを削除してもよろしいですか？\n\n';
-    if (categoryCount > 0) {
-      confirmMessage += `カテゴリ: ${categoryCount}個\n`;
-    }
-    if (timerCount > 0) {
-      confirmMessage += `タイマー: ${timerCount}個\n`;
-    }
-    confirmMessage += '\nこの操作は取り消せません。';
-    
-    if (confirm(confirmMessage)) {
-      // 全てのタイマーを停止
-      stopwatches.forEach(sw => sw.stop());
-      
-      // 配列をクリア
-      stopwatches.length = 0;
-      categories.length = 0;
-      
-      // IDカウンターをリセット
-      nextStopwatchId = 1;
-      nextCategoryId = 1;
-      
-      // 動作中タイマーIDをクリア
-      currentRunningStopwatchId = null;
-      
-      // UIをクリア
-      timersContainer.innerHTML = '';
-      
-      // 空の状態を表示
-      const emptyState = document.createElement('div');
-      emptyState.className = 'empty-state';
-      emptyState.textContent = '「カテゴリを追加」からスタート';
-      timersContainer.appendChild(emptyState);
-      
-      // 合計時間をリセット
-      updateTotalTime();
-      updateTargetTotalTime();
-      
-      console.log('全てのデータを削除しました');
-      alert('✅ 全てのデータを削除しました');
-    }
-    
-    dropdownMenu.classList.add('hidden');
   });
 }
 
