@@ -1811,6 +1811,17 @@ async function sendSlackNotificationSchedule() {
       });
     }
     
+    // 合計値を計算
+    const totalTargetSeconds = stopwatches.reduce((sum, sw) => {
+      return sum + (sw.targetSeconds || 0);
+    }, 0);
+    
+    // 合計値を追加
+    if (totalTargetSeconds > 0) {
+      message += '\n---\n';
+      message += `*📊 合計予定時間: ${formatTimeForSlack(totalTargetSeconds)}*\n`;
+    }
+    
     // Slackに送信
     const response = await fetch(slackWebhookUrl, {
       method: 'POST',
@@ -1897,6 +1908,22 @@ async function sendSlackNotificationActual() {
           message += `  • ${taskName} - 実績: ${actual}\n`;
         }
       });
+    }
+    
+    // 合計値を計算
+    const totalActualSeconds = stopwatches.reduce((sum, sw) => {
+      return sum + (sw.elapsedSeconds || 0);
+    }, 0);
+    const totalTargetSeconds = stopwatches.reduce((sum, sw) => {
+      return sum + (sw.targetSeconds || 0);
+    }, 0);
+    
+    // 合計値を追加
+    message += '\n---\n';
+    if (totalTargetSeconds > 0) {
+      message += `*📊 合計: ${formatTimeForSlack(totalActualSeconds)} / ${formatTimeForSlack(totalTargetSeconds)}*\n`;
+    } else {
+      message += `*📊 合計実績時間: ${formatTimeForSlack(totalActualSeconds)}*\n`;
     }
     
     // Slackに送信
