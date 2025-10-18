@@ -1583,10 +1583,9 @@ if (saveLocationOk) {
     }
     
     if (hasChanges) {
+      // 成功メッセージを表示（alertのみ閉じて、ダイアログは開いたまま）
       alert(message);
     }
-    
-    closeSaveLocationDialog();
   });
 }
 
@@ -2010,10 +2009,8 @@ slackWebhookSave.addEventListener('click', () => {
   localStorage.setItem('slackWebhookEnabled', slackWebhookEnabled.toString());
   console.log('Slack Webhook有効状態を保存しました:', slackWebhookEnabled);
   
-  // 成功メッセージを表示
+  // 成功メッセージを表示（alertのみ閉じて、ダイアログは開いたまま）
   alert('✅ Slack連携設定を保存しました');
-  
-  closeSlackWebhookDialog();
 });
 
 // キャンセルボタン
