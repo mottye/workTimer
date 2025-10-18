@@ -2235,7 +2235,13 @@ function showTimerOverlayMenu(stopwatch, button, toggleEditModeCallback) {
       stopwatch.isCompleted = !stopwatch.isCompleted;
       
       const card = document.querySelector(`.timer-card[data-timer-id="${stopwatch.id}"]`);
-      const toggleBtn = card.querySelector('.toggle-btn');
+      if (!card) {
+        console.error('カードが見つかりません:', stopwatch.id);
+        return;
+      }
+      
+      // .toggle-btn, .start-btn, .pause-btn, .confirm-btn のいずれかを取得
+      const toggleBtn = card.querySelector('.toggle-btn, .start-btn, .pause-btn, .confirm-btn');
       
       // 作業完了した場合、タイマーを停止
       if (stopwatch.isCompleted) {
@@ -2243,26 +2249,34 @@ function showTimerOverlayMenu(stopwatch, button, toggleEditModeCallback) {
           stopwatch.pause();
         }
         card.classList.add('completed');
-        toggleBtn.disabled = true;
+        if (toggleBtn) {
+          toggleBtn.disabled = true;
+        }
         
         // Slack通知を送信（完了）
         sendSlackActivityNotification(stopwatch, 'complete');
       } else {
         card.classList.remove('completed');
-        toggleBtn.disabled = false;
+        if (toggleBtn) {
+          toggleBtn.disabled = false;
+        }
         
         // Slack通知を送信（完了解除）
         sendSlackActivityNotification(stopwatch, 'uncomplete');
       }
       
       // ボタン表示を更新
-      const icon = toggleBtn.querySelector('.material-icons');
-      if (stopwatch.isRunning && !stopwatch.isPaused) {
-        icon.textContent = 'pause';
-        toggleBtn.title = '一時停止';
-      } else {
-        icon.textContent = 'play_arrow';
-        toggleBtn.title = 'スタート';
+      if (toggleBtn) {
+        const icon = toggleBtn.querySelector('.material-icons');
+        if (icon) {
+          if (stopwatch.isRunning && !stopwatch.isPaused) {
+            icon.textContent = 'pause';
+            toggleBtn.title = '一時停止';
+          } else {
+            icon.textContent = 'play_arrow';
+            toggleBtn.title = 'スタート';
+          }
+        }
       }
     }
   });
