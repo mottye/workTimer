@@ -593,6 +593,14 @@
       border-top: 1px solid #e5e7eb;
     }
 
+    .settings-buttons-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 0;
+      padding-top: 0;
+    }
+
     .dialog-slack-btn {
       display: flex;
       align-items: center;
@@ -1284,7 +1292,7 @@
   <div id="settingsDialog" class="dialog-overlay hidden">
     <div class="dialog-box">
       <h3 class="dialog-title">設定</h3>
-      <div class="dialog-slack-buttons" style="margin-top: 0; padding-top: 0; border-top: none;">
+      <div class="settings-buttons-grid">
         <button id="openSlackSettingsBtn" class="dialog-slack-btn">
           <span class="material-icons">chat</span>
           <span>Slack連携</span>
