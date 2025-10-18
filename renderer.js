@@ -448,6 +448,9 @@ class Stopwatch {
     }, 1000);
 
     this.updateButtons();
+    
+    // Slack通知を送信（開始）
+    sendSlackActivityNotification(this, 'start');
   }
 
   pause() {
@@ -462,6 +465,9 @@ class Stopwatch {
       }
       
       this.updateButtons();
+      
+      // Slack通知を送信（一時停止）
+      sendSlackActivityNotification(this, 'pause');
     }
   }
 
@@ -1895,6 +1901,85 @@ function formatTimeForSlack(totalSeconds) {
   return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 }
 
+// タイマー操作時のSlack通知
+async function sendSlackActivityNotification(stopwatch, action) {
+  // Slack通知が無効の場合はスキップ
+  if (!slackWebhookEnabled || !slackWebhookUrl) {
+    return;
+  }
+  
+  try {
+    const taskName = stopwatch.taskName || 'タスク名なし';
+    const currentTime = formatTimeForSlack(stopwatch.elapsedSeconds);
+    let message = '';
+    let icon = '';
+    
+    // アクションに応じたメッセージを生成
+    switch (action) {
+      case 'start':
+        icon = '▶️';
+        message = `${icon} *タイマー開始*\n`;
+        message += `タスク: ${taskName}\n`;
+        message += `現在時刻: ${currentTime}`;
+        break;
+      case 'pause':
+        icon = '⏸️';
+        message = `${icon} *タイマー一時停止*\n`;
+        message += `タスク: ${taskName}\n`;
+        message += `停止時刻: ${currentTime}`;
+        break;
+      case 'clear':
+        icon = '🔄';
+        message = `${icon} *タイマーリセット*\n`;
+        message += `タスク: ${taskName}\n`;
+        message += `リセット前: ${currentTime}`;
+        break;
+      case 'complete':
+        icon = '✅';
+        message = `${icon} *タスク完了*\n`;
+        message += `タスク: ${taskName}\n`;
+        message += `作業時間: ${currentTime}`;
+        if (stopwatch.targetSeconds && stopwatch.targetSeconds > 0) {
+          const target = formatTimeForSlack(stopwatch.targetSeconds);
+          message += `\n予定時間: ${target}`;
+        }
+        break;
+      case 'uncomplete':
+        icon = '↩️';
+        message = `${icon} *タスク完了を解除*\n`;
+        message += `タスク: ${taskName}`;
+        break;
+      default:
+        return; // 不明なアクションはスキップ
+    }
+    
+    // ユーザ名を追加
+    if (slackUsername) {
+      message += `\n\n作業者: ${slackUsername}`;
+    }
+    
+    // Slackに送信
+    const response = await fetch(slackWebhookUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        text: message
+      })
+    });
+    
+    if (response.ok) {
+      console.log(`Slack通知（${action}）を送信しました:`, taskName);
+    } else {
+      console.error(`Slack通知の送信に失敗しました: HTTP ${response.status}`);
+    }
+    
+  } catch (error) {
+    console.error('Slack通知の送信中にエラーが発生しました:', error);
+  }
+}
+
 // Slack通知ボタン（予定） - ダイアログ内
 if (sendSlackNotificationScheduleBtn) {
   sendSlackNotificationScheduleBtn.addEventListener('click', () => {
@@ -2146,6 +2231,7 @@ function showTimerOverlayMenu(stopwatch, button, toggleEditModeCallback) {
     const confirmMessage = `「${taskName}」を${action}しますか？`;
     
     if (confirm(confirmMessage)) {
+      const wasCompleted = stopwatch.isCompleted;
       stopwatch.isCompleted = !stopwatch.isCompleted;
       
       const card = document.querySelector(`.timer-card[data-timer-id="${stopwatch.id}"]`);
@@ -2158,9 +2244,15 @@ function showTimerOverlayMenu(stopwatch, button, toggleEditModeCallback) {
         }
         card.classList.add('completed');
         toggleBtn.disabled = true;
+        
+        // Slack通知を送信（完了）
+        sendSlackActivityNotification(stopwatch, 'complete');
       } else {
         card.classList.remove('completed');
         toggleBtn.disabled = false;
+        
+        // Slack通知を送信（完了解除）
+        sendSlackActivityNotification(stopwatch, 'uncomplete');
       }
       
       // ボタン表示を更新
@@ -2184,6 +2276,9 @@ function showTimerOverlayMenu(stopwatch, button, toggleEditModeCallback) {
     const confirmMessage = `「${taskName}」の時間（${timeDisplay}）をリセットしてもよろしいですか？`;
     
     if (confirm(confirmMessage)) {
+      // Slack通知を送信（リセット前の時間を記録するため、clearの前に送信）
+      sendSlackActivityNotification(stopwatch, 'clear');
+      
       stopwatch.clear();
       const card = document.querySelector(`[data-timer-id="${stopwatch.id}"]`);
       const toggleBtn = card.querySelector('.toggle-btn');
