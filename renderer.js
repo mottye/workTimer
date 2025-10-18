@@ -1508,15 +1508,52 @@ let tempSaveLocation = '';
 // 選択されたインポートファイル
 let selectedImportFile = null;
 
+// Slack連携の初期値（変更検知用）
+let initialSlackWebhookUrl = '';
+let initialSlackUsername = '';
+let initialSlackWebhookEnabled = false;
+let initialSlackTaskCompleteEnabled = false;
+
 // ダイアログを開く
 function openSlackWebhookDialog() {
+  // 現在の値を保存
+  initialSlackWebhookUrl = slackWebhookUrl || '';
+  initialSlackUsername = slackUsername || '';
+  initialSlackWebhookEnabled = slackWebhookEnabled;
+  initialSlackTaskCompleteEnabled = slackTaskCompleteEnabled;
+  
   slackWebhookInput.value = slackWebhookUrl || '';
   slackUsernameInput.value = slackUsername || '';
   slackWebhookEnabledCheckbox.checked = slackWebhookEnabled;
   slackTaskCompleteEnabledCheckbox.checked = slackTaskCompleteEnabled;
+  
+  // 保存ボタンを初期状態では無効化
+  slackWebhookSave.disabled = true;
+  
   slackWebhookDialog.classList.remove('hidden');
   slackWebhookInput.focus();
   dropdownMenu.classList.add('hidden');
+  
+  // 変更検知を開始
+  checkSlackWebhookChanges();
+}
+
+// Slack連携の変更をチェック
+function checkSlackWebhookChanges() {
+  const currentUrl = slackWebhookInput.value.trim();
+  const currentUsername = slackUsernameInput.value.trim();
+  const currentWebhookEnabled = slackWebhookEnabledCheckbox.checked;
+  const currentTaskCompleteEnabled = slackTaskCompleteEnabledCheckbox.checked;
+  
+  const hasUrlChanged = currentUrl !== initialSlackWebhookUrl;
+  const hasUsernameChanged = currentUsername !== initialSlackUsername;
+  const hasWebhookEnabledChanged = currentWebhookEnabled !== initialSlackWebhookEnabled;
+  const hasTaskCompleteEnabledChanged = currentTaskCompleteEnabled !== initialSlackTaskCompleteEnabled;
+  
+  const hasChanges = hasUrlChanged || hasUsernameChanged || hasWebhookEnabledChanged || hasTaskCompleteEnabledChanged;
+  
+  // 保存ボタンの有効/無効を切り替え
+  slackWebhookSave.disabled = !hasChanges;
 }
 
 // ダイアログを閉じる
@@ -2104,6 +2141,31 @@ if (exportDataBtn) {
       console.error('エクスポートエラー:', error);
       alert('❌ エクスポートに失敗しました');
     }
+  });
+}
+
+// Slack連携の入力フィールドとトグルの変更を監視
+if (slackWebhookInput) {
+  slackWebhookInput.addEventListener('input', () => {
+    checkSlackWebhookChanges();
+  });
+}
+
+if (slackUsernameInput) {
+  slackUsernameInput.addEventListener('input', () => {
+    checkSlackWebhookChanges();
+  });
+}
+
+if (slackWebhookEnabledCheckbox) {
+  slackWebhookEnabledCheckbox.addEventListener('change', () => {
+    checkSlackWebhookChanges();
+  });
+}
+
+if (slackTaskCompleteEnabledCheckbox) {
+  slackTaskCompleteEnabledCheckbox.addEventListener('change', () => {
+    checkSlackWebhookChanges();
   });
 }
 
