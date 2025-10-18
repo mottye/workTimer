@@ -1203,6 +1203,10 @@
           <span class="material-icons">notifications</span>
           <span>Slack通知</span>
         </div>
+        <div class="menu-item" id="exportDataMenuItem">
+          <span class="material-icons">file_download</span>
+          <span>エクスポート</span>
+        </div>
         <div class="menu-divider"></div>
         <div class="menu-item-toggle">
           <div class="menu-toggle-label">
@@ -1292,7 +1296,7 @@
         </button>
         <button id="openSaveLocationSettingsBtn" class="dialog-slack-btn">
           <span class="material-icons">folder_open</span>
-          <span>データ保存</span>
+          <span>自動保存</span>
         </button>
         <button id="openDataImportBtn" class="dialog-slack-btn">
           <span class="material-icons">upload_file</span>
@@ -1320,7 +1324,7 @@
   <!-- 保存先設定ダイアログ -->
   <div id="saveLocationDialog" class="dialog-overlay hidden">
     <div class="dialog-box">
-      <h3 class="dialog-title">データ保存</h3>
+      <h3 class="dialog-title">自動保存</h3>
       <div style="margin-bottom: 15px;">
         <p style="font-size: 14px; color: #666; margin-bottom: 10px;">データの自動保存先を設定します</p>
         <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px;">
@@ -1329,7 +1333,6 @@
             <span class="material-icons" style="font-size: 18px;">folder_open</span>
           </button>
         </div>
-        <p style="font-size: 12px; color: #999;">※ 保存先を変更すると、次回から指定した場所にデータが保存されます</p>
       </div>
       <div style="margin-bottom: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
         <div style="display: flex; align-items: center; justify-content: space-between;">
