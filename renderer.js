@@ -1463,9 +1463,12 @@ const sendSlackNotificationActualBtn = document.getElementById('sendSlackNotific
 // AI APIキー設定ダイアログ
 const apiKeyDialog = document.getElementById('apiKeyDialog');
 const apiKeyInput = document.getElementById('apiKeyInput');
-const apiKeySaveMessage = document.getElementById('apiKeySaveMessage');
 const apiKeyOk = document.getElementById('apiKeyOk');
 const apiKeyCancel = document.getElementById('apiKeyCancel');
+
+// トースト通知
+const toast = document.getElementById('toast');
+const toastMessage = document.getElementById('toastMessage');
 
 // 保存先設定ダイアログ
 const saveLocationDialog = document.getElementById('saveLocationDialog');
@@ -1498,7 +1501,6 @@ function closeSlackWebhookDialog() {
 // AI APIキーダイアログを開く
 function openApiKeyDialog() {
   apiKeyInput.value = apiKey || '';
-  apiKeySaveMessage.classList.add('hidden'); // 成功メッセージを非表示
   apiKeyDialog.classList.remove('hidden');
   apiKeyInput.focus();
   dropdownMenu.classList.add('hidden');
@@ -1507,7 +1509,25 @@ function openApiKeyDialog() {
 // AI APIキーダイアログを閉じる
 function closeApiKeyDialog() {
   apiKeyDialog.classList.add('hidden');
-  apiKeySaveMessage.classList.add('hidden'); // 成功メッセージを非表示
+}
+
+// トースト通知を表示する関数
+function showToast(message, duration = 3000) {
+  toastMessage.textContent = message;
+  toast.classList.remove('hidden');
+  toast.classList.add('show');
+  
+  // 指定時間後に非表示
+  setTimeout(() => {
+    toast.classList.remove('show');
+    toast.classList.add('hide');
+    
+    // アニメーション終了後に完全に非表示
+    setTimeout(() => {
+      toast.classList.add('hidden');
+      toast.classList.remove('hide');
+    }, 300);
+  }, duration);
 }
 
 // 保存先設定ダイアログを開く
@@ -2018,8 +2038,11 @@ if (apiKeyOk) {
     localStorage.setItem('aiApiKey', apiKey);
     console.log('AI APIキーを保存しました');
     
-    // 成功メッセージを表示
-    apiKeySaveMessage.classList.remove('hidden');
+    // トースト通知を表示
+    showToast('✅ 保存に成功しました');
+    
+    // ダイアログを閉じる
+    closeApiKeyDialog();
   });
 }
 
