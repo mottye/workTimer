@@ -1486,8 +1486,19 @@ const autoSaveEnabledCheckbox = document.getElementById('autoSaveEnabled');
 const saveLocationOk = document.getElementById('saveLocationOk');
 const saveLocationClose = document.getElementById('saveLocationClose');
 
+// データインポートダイアログ
+const dataImportDialog = document.getElementById('dataImportDialog');
+const importFileInput = document.getElementById('importFileInput');
+const selectImportFileBtn = document.getElementById('selectImportFileBtn');
+const selectedFileName = document.getElementById('selectedFileName');
+const executeImportBtn = document.getElementById('executeImportBtn');
+const dataImportClose = document.getElementById('dataImportClose');
+const openDataImportBtn = document.getElementById('openDataImportBtn');
+
 // 一時的な保存先（OK押下前）
 let tempSaveLocation = '';
+// 選択されたインポートファイル
+let selectedImportFile = null;
 
 // ダイアログを開く
 function openSlackWebhookDialog() {
@@ -1556,6 +1567,23 @@ function closeSaveLocationDialog() {
   saveLocationDialog.classList.add('hidden');
   // 一時保存先をクリア
   tempSaveLocation = '';
+}
+
+// データインポートダイアログを開く
+function openDataImportDialog() {
+  // ダイアログをリセット
+  selectedFileName.textContent = '';
+  selectedImportFile = null;
+  executeImportBtn.disabled = true;
+  dataImportDialog.classList.remove('hidden');
+}
+
+// データインポートダイアログを閉じる
+function closeDataImportDialog() {
+  dataImportDialog.classList.add('hidden');
+  selectedFileName.textContent = '';
+  selectedImportFile = null;
+  executeImportBtn.disabled = true;
 }
 
 // 設定メニュー
@@ -1985,6 +2013,15 @@ if (openSaveLocationSettingsBtn) {
   });
 }
 
+// 設定ダイアログ内のインポートボタン
+if (openDataImportBtn) {
+  openDataImportBtn.addEventListener('click', () => {
+    openedFromSettings = true;
+    closeSettingsDialog();
+    openDataImportDialog();
+  });
+}
+
 // 保存ボタン
 slackWebhookSave.addEventListener('click', () => {
   const newUrl = slackWebhookInput.value.trim();
@@ -2079,6 +2116,138 @@ if (apiKeyInput) {
   apiKeyInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
       apiKeyOk.click();
+    }
+  });
+}
+
+// データインポート - ファイル選択ボタン
+if (selectImportFileBtn) {
+  selectImportFileBtn.addEventListener('click', () => {
+    importFileInput.click();
+  });
+}
+
+// データインポート - ファイル選択時
+if (importFileInput) {
+  importFileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      selectedImportFile = file;
+      selectedFileName.textContent = `選択: ${file.name}`;
+      executeImportBtn.disabled = false;
+    } else {
+      selectedImportFile = null;
+      selectedFileName.textContent = '';
+      executeImportBtn.disabled = true;
+    }
+  });
+}
+
+// データインポート - インポート実行ボタン
+if (executeImportBtn) {
+  executeImportBtn.addEventListener('click', async () => {
+    if (!selectedImportFile) {
+      alert('ファイルが選択されていません');
+      return;
+    }
+
+    // 既存データがある場合は警告
+    if (stopwatches.length > 0 || categories.length > 0) {
+      const confirmMessage = '既存のデータが存在します。\nインポートすると現在のデータに追加されます。\n続行しますか？';
+      if (!confirm(confirmMessage)) {
+        return;
+      }
+    }
+
+    try {
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        try {
+          const jsonData = JSON.parse(event.target.result);
+          
+          // データの妥当性チェック
+          if (!jsonData.stopwatches || !jsonData.categories) {
+            alert('❌ 無効なデータ形式です');
+            return;
+          }
+
+          // 現在のIDを保存
+          const currentMaxStopwatchId = stopwatches.length > 0 ? Math.max(...stopwatches.map(sw => sw.id)) : 0;
+          const currentMaxCategoryId = categories.length > 0 ? Math.max(...categories.map(cat => cat.id)) : 0;
+
+          // カテゴリをインポート
+          jsonData.categories.forEach(catData => {
+            const newCategoryId = nextCategoryId++;
+            const category = new Category(newCategoryId, catData.name);
+            category.isCollapsed = catData.isCollapsed || false;
+            categories.push(category);
+
+            // カテゴリカードを作成
+            createCategoryCard(category);
+          });
+
+          // タイマーをインポート
+          jsonData.stopwatches.forEach(swData => {
+            const newStopwatchId = nextStopwatchId++;
+            // カテゴリIDを調整（存在する場合）
+            let newCategoryId = null;
+            if (swData.categoryId !== null) {
+              const oldCategoryIndex = jsonData.categories.findIndex(cat => cat.id === swData.categoryId);
+              if (oldCategoryIndex !== -1) {
+                newCategoryId = categories[categories.length - jsonData.categories.length + oldCategoryIndex].id;
+              }
+            }
+
+            const stopwatch = new Stopwatch(newStopwatchId, newCategoryId);
+            stopwatch.elapsedSeconds = swData.elapsedSeconds || 0;
+            stopwatch.taskName = swData.taskName || '';
+            stopwatch.targetSeconds = swData.targetSeconds !== undefined ? swData.targetSeconds : null;
+            stopwatch.isCompleted = swData.isCompleted || false;
+            stopwatches.push(stopwatch);
+          });
+
+          // UIを更新
+          renderAllTimers();
+          updateTotalTime();
+          updateTargetTotalTime();
+          updateAllCategoryTimes();
+
+          closeDataImportDialog();
+          alert('✅ データをインポートしました');
+          
+        } catch (error) {
+          console.error('インポートエラー:', error);
+          alert('❌ データの読み込みに失敗しました');
+        }
+      };
+      reader.readAsText(selectedImportFile);
+    } catch (error) {
+      console.error('ファイル読み込みエラー:', error);
+      alert('❌ ファイルの読み込みに失敗しました');
+    }
+  });
+}
+
+// データインポート - 閉じるボタン
+if (dataImportClose) {
+  dataImportClose.addEventListener('click', () => {
+    closeDataImportDialog();
+    if (openedFromSettings) {
+      openedFromSettings = false;
+      openSettingsDialog();
+    }
+  });
+}
+
+// データインポート - オーバーレイクリック
+if (dataImportDialog) {
+  dataImportDialog.addEventListener('click', (e) => {
+    if (e.target === dataImportDialog) {
+      closeDataImportDialog();
+      if (openedFromSettings) {
+        openedFromSettings = false;
+        openSettingsDialog();
+      }
     }
   });
 }
