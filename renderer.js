@@ -1621,7 +1621,7 @@ if (exportDataMenuItem) {
       const defaultFileName = `${epochSeconds}.json`;
       
       // データを取得
-      const data = getDataForExport();
+      const data = generateSaveData();
       const jsonString = JSON.stringify(data, null, 2);
       
       // ファイル保存ダイアログを表示
