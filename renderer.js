@@ -2219,7 +2219,7 @@ if (executeImportBtn) {
 
     // 既存データがある場合は警告
     if (stopwatches.length > 0 || categories.length > 0) {
-      const confirmMessage = '既存のデータが存在します。\nインポートすると現在のデータに追加されます。\n続行しますか？';
+      const confirmMessage = '既存のデータが存在します。\nインポートすると現在のデータは破棄されます。\n続行しますか？';
       if (!confirm(confirmMessage)) {
         return;
       }
@@ -2237,9 +2237,20 @@ if (executeImportBtn) {
             return;
           }
 
-          // 現在のIDを保存
-          const currentMaxStopwatchId = stopwatches.length > 0 ? Math.max(...stopwatches.map(sw => sw.id)) : 0;
-          const currentMaxCategoryId = categories.length > 0 ? Math.max(...categories.map(cat => cat.id)) : 0;
+          // 既存データをクリア
+          // 全てのタイマーを停止
+          stopwatches.forEach(sw => sw.stop());
+          
+          // 配列をクリア
+          stopwatches.length = 0;
+          categories.length = 0;
+          
+          // IDカウンターをリセット
+          nextStopwatchId = 1;
+          nextCategoryId = 1;
+          
+          // 動作中タイマーIDをクリア
+          currentRunningStopwatchId = null;
 
           // カテゴリをインポート
           jsonData.categories.forEach(catData => {
@@ -2257,7 +2268,7 @@ if (executeImportBtn) {
             if (swData.categoryId !== null) {
               const oldCategoryIndex = jsonData.categories.findIndex(cat => cat.id === swData.categoryId);
               if (oldCategoryIndex !== -1) {
-                newCategoryId = categories[categories.length - jsonData.categories.length + oldCategoryIndex].id;
+                newCategoryId = categories[oldCategoryIndex].id;
               }
             }
 
