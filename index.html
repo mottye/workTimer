@@ -1199,17 +1199,13 @@
           <span>タイマーを追加</span>
         </div>
         <div class="menu-divider"></div>
-        <div class="menu-item" id="setSlackWebhookMenuItem">
+        <div class="menu-item" id="settingsMenuItem">
           <span class="material-icons">settings</span>
-          <span>Slack連携</span>
+          <span>設定</span>
         </div>
         <div class="menu-item" id="slackNotificationMenuItem">
           <span class="material-icons">notifications</span>
           <span>Slack通知</span>
-        </div>
-        <div class="menu-item" id="setApiKeyMenuItem">
-          <span class="material-icons">vpn_key</span>
-          <span>AI APIキー設定</span>
         </div>
         <div class="menu-item" id="saveLocationMenuItem">
           <span class="material-icons">folder_open</span>
@@ -1284,6 +1280,26 @@
       </div>
       <div class="dialog-buttons">
         <button id="slackNotificationClose" class="dialog-btn dialog-btn-cancel">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 設定ダイアログ -->
+  <div id="settingsDialog" class="dialog-overlay hidden">
+    <div class="dialog-box">
+      <h3 class="dialog-title">設定</h3>
+      <div class="dialog-slack-buttons" style="margin-top: 0; padding-top: 0; border-top: none;">
+        <button id="openSlackSettingsBtn" class="dialog-slack-btn">
+          <span class="material-icons">chat</span>
+          <span>Slack連携</span>
+        </button>
+        <button id="openApiKeySettingsBtn" class="dialog-slack-btn">
+          <span class="material-icons">vpn_key</span>
+          <span>AI APIキー設定</span>
+        </button>
+      </div>
+      <div class="dialog-buttons">
+        <button id="settingsClose" class="dialog-btn dialog-btn-cancel">閉じる</button>
       </div>
     </div>
   </div>

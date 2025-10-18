@@ -380,9 +380,8 @@ const menuBtn = document.getElementById('menuBtn');
 const dropdownMenu = document.getElementById('dropdownMenu');
 const addCategoryMenuItem = document.getElementById('addCategoryMenuItem');
 const addTimerMenuItem = document.getElementById('addTimerMenuItem');
-const setSlackWebhookMenuItem = document.getElementById('setSlackWebhookMenuItem');
+const settingsMenuItem = document.getElementById('settingsMenuItem');
 const slackNotificationMenuItem = document.getElementById('slackNotificationMenuItem');
-const setApiKeyMenuItem = document.getElementById('setApiKeyMenuItem');
 const saveLocationMenuItem = document.getElementById('saveLocationMenuItem');
 const clearAllMenuItem = document.getElementById('clearAllMenuItem');
 const alwaysOnTopToggle = document.getElementById('alwaysOnTopToggle');
@@ -1465,6 +1464,12 @@ const sendSlackNotificationActualBtn = document.getElementById('sendSlackNotific
 const slackNotificationDialog = document.getElementById('slackNotificationDialog');
 const slackNotificationClose = document.getElementById('slackNotificationClose');
 
+// 設定ダイアログ
+const settingsDialog = document.getElementById('settingsDialog');
+const settingsClose = document.getElementById('settingsClose');
+const openSlackSettingsBtn = document.getElementById('openSlackSettingsBtn');
+const openApiKeySettingsBtn = document.getElementById('openApiKeySettingsBtn');
+
 // AI APIキー設定ダイアログ
 const apiKeyDialog = document.getElementById('apiKeyDialog');
 const apiKeyInput = document.getElementById('apiKeyInput');
@@ -1510,6 +1515,17 @@ function closeSlackNotificationDialog() {
   slackNotificationDialog.classList.add('hidden');
 }
 
+// 設定ダイアログを開く
+function openSettingsDialog() {
+  settingsDialog.classList.remove('hidden');
+  dropdownMenu.classList.add('hidden');
+}
+
+// 設定ダイアログを閉じる
+function closeSettingsDialog() {
+  settingsDialog.classList.add('hidden');
+}
+
 // AI APIキーダイアログを開く
 function openApiKeyDialog() {
   apiKeyInput.value = apiKey || '';
@@ -1540,10 +1556,10 @@ function closeSaveLocationDialog() {
   tempSaveLocation = '';
 }
 
-// Slack Webhook URL設定メニュー
-if (setSlackWebhookMenuItem) {
-  setSlackWebhookMenuItem.addEventListener('click', () => {
-    openSlackWebhookDialog();
+// 設定メニュー
+if (settingsMenuItem) {
+  settingsMenuItem.addEventListener('click', () => {
+    openSettingsDialog();
   });
 }
 
@@ -1551,13 +1567,6 @@ if (setSlackWebhookMenuItem) {
 if (slackNotificationMenuItem) {
   slackNotificationMenuItem.addEventListener('click', () => {
     openSlackNotificationDialog();
-  });
-}
-
-// AI APIキー設定メニュー
-if (setApiKeyMenuItem) {
-  setApiKeyMenuItem.addEventListener('click', () => {
-    openApiKeyDialog();
   });
 }
 
@@ -1990,6 +1999,38 @@ if (slackNotificationDialog) {
     if (e.target === slackNotificationDialog) {
       closeSlackNotificationDialog();
     }
+  });
+}
+
+// 設定ダイアログの閉じるボタン
+if (settingsClose) {
+  settingsClose.addEventListener('click', () => {
+    closeSettingsDialog();
+  });
+}
+
+// 設定ダイアログの外側をクリックで閉じる
+if (settingsDialog) {
+  settingsDialog.addEventListener('click', (e) => {
+    if (e.target === settingsDialog) {
+      closeSettingsDialog();
+    }
+  });
+}
+
+// 設定ダイアログ内のSlack連携ボタン
+if (openSlackSettingsBtn) {
+  openSlackSettingsBtn.addEventListener('click', () => {
+    closeSettingsDialog();
+    openSlackWebhookDialog();
+  });
+}
+
+// 設定ダイアログ内のAI APIキー設定ボタン
+if (openApiKeySettingsBtn) {
+  openApiKeySettingsBtn.addEventListener('click', () => {
+    closeSettingsDialog();
+    openApiKeyDialog();
   });
 }
 
