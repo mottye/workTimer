@@ -392,7 +392,6 @@ const addCategoryMenuItem = document.getElementById('addCategoryMenuItem');
 const addTimerMenuItem = document.getElementById('addTimerMenuItem');
 const settingsMenuItem = document.getElementById('settingsMenuItem');
 const slackNotificationMenuItem = document.getElementById('slackNotificationMenuItem');
-const exportDataMenuItem = document.getElementById('exportDataMenuItem');
 const alwaysOnTopToggle = document.getElementById('alwaysOnTopToggle');
 const opacitySlider = document.getElementById('opacitySlider');
 const opacityValue = document.getElementById('opacityValue');
@@ -1610,40 +1609,6 @@ if (slackNotificationMenuItem) {
   });
 }
 
-// エクスポートメニュー
-if (exportDataMenuItem) {
-  exportDataMenuItem.addEventListener('click', async () => {
-    dropdownMenu.classList.add('hidden');
-    
-    try {
-      // エポック秒でファイル名を生成
-      const epochSeconds = Math.floor(Date.now() / 1000);
-      const defaultFileName = `${epochSeconds}.json`;
-      
-      // データを取得
-      const data = generateSaveData();
-      const jsonString = JSON.stringify(data, null, 2);
-      
-      // ファイル保存ダイアログを表示
-      const result = await ipcRenderer.invoke('save-data-file', {
-        data: jsonString,
-        defaultFilename: defaultFileName
-      });
-      
-      if (result.success) {
-        alert('✅ データをエクスポートしました');
-      } else if (result.cancelled) {
-        // キャンセルされた場合は何もしない
-      } else {
-        alert('❌ エクスポートに失敗しました');
-      }
-    } catch (error) {
-      console.error('エクスポートエラー:', error);
-      alert('❌ エクスポートに失敗しました');
-    }
-  });
-}
-
 // 保存先選択ボタン
 if (selectSaveLocationBtn) {
   selectSaveLocationBtn.addEventListener('click', async () => {
@@ -2079,6 +2044,41 @@ if (openDataImportBtn) {
     openedFromSettings = true;
     closeSettingsDialog();
     openDataImportDialog();
+  });
+}
+
+// 設定ダイアログ内のエクスポートボタン
+const exportDataBtn = document.getElementById('exportDataBtn');
+if (exportDataBtn) {
+  exportDataBtn.addEventListener('click', async () => {
+    closeSettingsDialog();
+    
+    try {
+      // エポック秒でファイル名を生成
+      const epochSeconds = Math.floor(Date.now() / 1000);
+      const defaultFileName = `${epochSeconds}.json`;
+      
+      // データを取得
+      const data = generateSaveData();
+      const jsonString = JSON.stringify(data, null, 2);
+      
+      // ファイル保存ダイアログを表示
+      const result = await ipcRenderer.invoke('save-data-file', {
+        data: jsonString,
+        defaultFilename: defaultFileName
+      });
+      
+      if (result.success) {
+        alert('✅ データをエクスポートしました');
+      } else if (result.cancelled) {
+        // キャンセルされた場合は何もしない
+      } else {
+        alert('❌ エクスポートに失敗しました');
+      }
+    } catch (error) {
+      console.error('エクスポートエラー:', error);
+      alert('❌ エクスポートに失敗しました');
+    }
   });
 }
 
