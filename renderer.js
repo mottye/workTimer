@@ -381,6 +381,7 @@ const dropdownMenu = document.getElementById('dropdownMenu');
 const addCategoryMenuItem = document.getElementById('addCategoryMenuItem');
 const addTimerMenuItem = document.getElementById('addTimerMenuItem');
 const setSlackWebhookMenuItem = document.getElementById('setSlackWebhookMenuItem');
+const slackNotificationMenuItem = document.getElementById('slackNotificationMenuItem');
 const setApiKeyMenuItem = document.getElementById('setApiKeyMenuItem');
 const saveLocationMenuItem = document.getElementById('saveLocationMenuItem');
 const clearAllMenuItem = document.getElementById('clearAllMenuItem');
@@ -1460,6 +1461,10 @@ const slackWebhookCancel = document.getElementById('slackWebhookCancel');
 const sendSlackNotificationScheduleBtn = document.getElementById('sendSlackNotificationScheduleBtn');
 const sendSlackNotificationActualBtn = document.getElementById('sendSlackNotificationActualBtn');
 
+// Slack通知ダイアログ
+const slackNotificationDialog = document.getElementById('slackNotificationDialog');
+const slackNotificationClose = document.getElementById('slackNotificationClose');
+
 // AI APIキー設定ダイアログ
 const apiKeyDialog = document.getElementById('apiKeyDialog');
 const apiKeyInput = document.getElementById('apiKeyInput');
@@ -1492,6 +1497,17 @@ function closeSlackWebhookDialog() {
   slackWebhookDialog.classList.add('hidden');
   slackWebhookInput.value = '';
   slackUsernameInput.value = '';
+}
+
+// Slack通知ダイアログを開く
+function openSlackNotificationDialog() {
+  slackNotificationDialog.classList.remove('hidden');
+  dropdownMenu.classList.add('hidden');
+}
+
+// Slack通知ダイアログを閉じる
+function closeSlackNotificationDialog() {
+  slackNotificationDialog.classList.add('hidden');
 }
 
 // AI APIキーダイアログを開く
@@ -1528,6 +1544,13 @@ function closeSaveLocationDialog() {
 if (setSlackWebhookMenuItem) {
   setSlackWebhookMenuItem.addEventListener('click', () => {
     openSlackWebhookDialog();
+  });
+}
+
+// Slack通知メニュー
+if (slackNotificationMenuItem) {
+  slackNotificationMenuItem.addEventListener('click', () => {
+    openSlackNotificationDialog();
   });
 }
 
@@ -1951,6 +1974,22 @@ if (sendSlackNotificationScheduleBtn) {
 if (sendSlackNotificationActualBtn) {
   sendSlackNotificationActualBtn.addEventListener('click', () => {
     sendSlackNotificationActual();
+  });
+}
+
+// Slack通知ダイアログの閉じるボタン
+if (slackNotificationClose) {
+  slackNotificationClose.addEventListener('click', () => {
+    closeSlackNotificationDialog();
+  });
+}
+
+// Slack通知ダイアログの外側をクリックで閉じる
+if (slackNotificationDialog) {
+  slackNotificationDialog.addEventListener('click', (e) => {
+    if (e.target === slackNotificationDialog) {
+      closeSlackNotificationDialog();
+    }
   });
 }
 

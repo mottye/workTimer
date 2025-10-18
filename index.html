@@ -1203,6 +1203,10 @@
           <span class="material-icons">settings</span>
           <span>Slack連携</span>
         </div>
+        <div class="menu-item" id="slackNotificationMenuItem">
+          <span class="material-icons">notifications</span>
+          <span>Slack通知</span>
+        </div>
         <div class="menu-item" id="setApiKeyMenuItem">
           <span class="material-icons">vpn_key</span>
           <span>AI APIキー設定</span>
@@ -1258,7 +1262,17 @@
       <div class="dialog-save-container">
         <button id="slackWebhookSave" class="dialog-btn dialog-btn-save">保存</button>
       </div>
-      <div class="dialog-slack-buttons">
+      <div class="dialog-buttons">
+        <button id="slackWebhookCancel" class="dialog-btn dialog-btn-cancel">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slack通知ダイアログ -->
+  <div id="slackNotificationDialog" class="dialog-overlay hidden">
+    <div class="dialog-box">
+      <h3 class="dialog-title">Slack通知</h3>
+      <div class="dialog-slack-buttons" style="margin-top: 0; padding-top: 0; border-top: none;">
         <button id="sendSlackNotificationScheduleBtn" class="dialog-slack-btn">
           <span class="material-icons">schedule_send</span>
           <span>Slack通知（予定）</span>
@@ -1269,7 +1283,7 @@
         </button>
       </div>
       <div class="dialog-buttons">
-        <button id="slackWebhookCancel" class="dialog-btn dialog-btn-cancel">閉じる</button>
+        <button id="slackNotificationClose" class="dialog-btn dialog-btn-cancel">閉じる</button>
       </div>
     </div>
   </div>
