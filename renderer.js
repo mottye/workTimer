@@ -382,7 +382,6 @@ const addCategoryMenuItem = document.getElementById('addCategoryMenuItem');
 const addTimerMenuItem = document.getElementById('addTimerMenuItem');
 const settingsMenuItem = document.getElementById('settingsMenuItem');
 const slackNotificationMenuItem = document.getElementById('slackNotificationMenuItem');
-const saveLocationMenuItem = document.getElementById('saveLocationMenuItem');
 const clearAllMenuItem = document.getElementById('clearAllMenuItem');
 const alwaysOnTopToggle = document.getElementById('alwaysOnTopToggle');
 const opacitySlider = document.getElementById('opacitySlider');
@@ -1469,6 +1468,7 @@ const settingsDialog = document.getElementById('settingsDialog');
 const settingsClose = document.getElementById('settingsClose');
 const openSlackSettingsBtn = document.getElementById('openSlackSettingsBtn');
 const openApiKeySettingsBtn = document.getElementById('openApiKeySettingsBtn');
+const openSaveLocationSettingsBtn = document.getElementById('openSaveLocationSettingsBtn');
 
 // AI APIキー設定ダイアログ
 const apiKeyDialog = document.getElementById('apiKeyDialog');
@@ -1567,14 +1567,6 @@ if (settingsMenuItem) {
 if (slackNotificationMenuItem) {
   slackNotificationMenuItem.addEventListener('click', () => {
     openSlackNotificationDialog();
-  });
-}
-
-// 保存先設定メニュー
-if (saveLocationMenuItem) {
-  saveLocationMenuItem.addEventListener('click', () => {
-    openSaveLocationDialog();
-    dropdownMenu.classList.add('hidden');
   });
 }
 
@@ -2031,6 +2023,14 @@ if (openApiKeySettingsBtn) {
   openApiKeySettingsBtn.addEventListener('click', () => {
     closeSettingsDialog();
     openApiKeyDialog();
+  });
+}
+
+// 設定ダイアログ内の保存先設定ボタン
+if (openSaveLocationSettingsBtn) {
+  openSaveLocationSettingsBtn.addEventListener('click', () => {
+    closeSettingsDialog();
+    openSaveLocationDialog();
   });
 }
 
