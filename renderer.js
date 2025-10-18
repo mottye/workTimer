@@ -1568,7 +1568,22 @@ function openSaveLocationDialog() {
   saveLocationPath.value = saveLocation || '';
   // 自動保存トグルの状態を設定
   autoSaveEnabledCheckbox.checked = autoSaveEnabled;
+  // OKボタンを初期状態では無効化
+  saveLocationOk.disabled = true;
   saveLocationDialog.classList.remove('hidden');
+  
+  // 変更検知を開始
+  checkSaveLocationChanges();
+}
+
+// 保存先設定の変更をチェック
+function checkSaveLocationChanges() {
+  const hasSaveLocationChanged = tempSaveLocation && tempSaveLocation !== saveLocation;
+  const hasAutoSaveChanged = autoSaveEnabledCheckbox.checked !== autoSaveEnabled;
+  const hasChanges = hasSaveLocationChanged || hasAutoSaveChanged;
+  
+  // OKボタンの有効/無効を切り替え
+  saveLocationOk.disabled = !hasChanges;
 }
 
 // 保存先設定ダイアログを閉じる
@@ -1618,11 +1633,21 @@ if (selectSaveLocationBtn) {
         // 一時的に保存先を保持（OKボタンを押すまで確定しない）
         tempSaveLocation = result;
         saveLocationPath.value = tempSaveLocation;
+        // 変更検知
+        checkSaveLocationChanges();
       }
     } catch (error) {
       console.error('保存先選択エラー:', error);
       alert('保存先の選択に失敗しました');
     }
+  });
+}
+
+// 自動保存トグルの変更を監視
+if (autoSaveEnabledCheckbox) {
+  autoSaveEnabledCheckbox.addEventListener('change', () => {
+    // 変更検知
+    checkSaveLocationChanges();
   });
 }
 
@@ -1660,11 +1685,9 @@ if (saveLocationOk) {
       stopAutoSaveTimer();
     }
     
-    // 成功メッセージを表示（変更の有無に関わらず）
+    // 成功メッセージを表示（変更がある場合のみ）
     if (hasChanges) {
       alert(message);
-    } else {
-      alert('✅ 設定を保存しました');
     }
   });
 }
