@@ -584,68 +584,18 @@
       min-width: 100px;
     }
 
-    /* トースト通知 */
-    .toast {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: #10b981;
-      color: white;
-      padding: 16px 24px;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      display: flex;
-      align-items: center;
-      gap: 12px;
+    .dialog-save-message {
+      margin-top: 10px;
+      padding: 10px;
+      background: #d4edda;
+      color: #155724;
+      border-radius: 4px;
       font-size: 14px;
-      font-weight: 500;
-      z-index: 10000;
-      opacity: 0;
-      transform: translateY(-20px);
-      transition: all 0.3s ease;
+      text-align: center;
     }
 
-    .toast:not(.hidden) {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .toast.hidden {
+    .dialog-save-message.hidden {
       display: none;
-    }
-
-    .toast .material-icons {
-      font-size: 20px;
-    }
-
-    @keyframes slideInDown {
-      from {
-        opacity: 0;
-        transform: translateY(-20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    @keyframes slideOutUp {
-      from {
-        opacity: 1;
-        transform: translateY(0);
-      }
-      to {
-        opacity: 0;
-        transform: translateY(-20px);
-      }
-    }
-
-    .toast.show {
-      animation: slideInDown 0.3s ease forwards;
-    }
-
-    .toast.hide {
-      animation: slideOutUp 0.3s ease forwards;
     }
 
     .dialog-slack-buttons {
@@ -1343,17 +1293,12 @@
     <div class="dialog-box">
       <h3 class="dialog-title">AI APIキー設定</h3>
       <input type="password" id="apiKeyInput" class="dialog-input" placeholder="APIキーを入力してください">
+      <div id="apiKeySaveMessage" class="dialog-save-message hidden">✅ 保存に成功しました</div>
       <div class="dialog-buttons">
         <button id="apiKeyOk" class="dialog-btn dialog-btn-save">OK</button>
         <button id="apiKeyCancel" class="dialog-btn dialog-btn-cancel">閉じる</button>
       </div>
     </div>
-  </div>
-
-  <!-- トースト通知 -->
-  <div id="toast" class="toast hidden">
-    <span class="material-icons">check_circle</span>
-    <span id="toastMessage">保存に成功しました</span>
   </div>
 
   <!-- 保存先設定ダイアログ -->
