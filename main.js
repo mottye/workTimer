@@ -90,6 +90,31 @@ ipcMain.handle('auto-save-data', async (event, { saveLocation, data }) => {
     // データを保存
     fs.writeFileSync(filePath, data, 'utf8');
     
+    // 古い自動保存ファイルを削除（4世代まで保持）
+    try {
+      const files = fs.readdirSync(saveLocation);
+      const autosaveFiles = files
+        .filter(file => file.startsWith('autosave_') && file.endsWith('.json'))
+        .map(file => ({
+          name: file,
+          path: path.join(saveLocation, file),
+          mtime: fs.statSync(path.join(saveLocation, file)).mtime
+        }))
+        .sort((a, b) => b.mtime - a.mtime); // 新しい順にソート
+      
+      // 4世代を超えるファイルを削除
+      if (autosaveFiles.length > 4) {
+        const filesToDelete = autosaveFiles.slice(4);
+        filesToDelete.forEach(file => {
+          fs.unlinkSync(file.path);
+          console.log('古い自動保存ファイルを削除しました:', file.name);
+        });
+      }
+    } catch (cleanupError) {
+      console.error('古いファイルの削除中にエラーが発生しました:', cleanupError);
+      // クリーンアップエラーは無視して続行
+    }
+    
     return { success: true, filePath: filePath };
   } catch (error) {
     console.error('自動保存エラー:', error);
