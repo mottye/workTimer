@@ -1405,6 +1405,22 @@ document.addEventListener('click', (e) => {
   });
 });
 
+// Escキーでメニューを閉じる
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    // メインメニューを閉じる
+    if (!dropdownMenu.classList.contains('hidden')) {
+      dropdownMenu.classList.add('hidden');
+    }
+    
+    // オーバーレイメニュー（カテゴリ・タイマー）を閉じる
+    const overlayMenu = document.querySelector('.timer-menu-overlay');
+    if (overlayMenu) {
+      overlayMenu.remove();
+    }
+  }
+});
+
 // メニュー項目のクリックイベント
 addCategoryMenuItem.addEventListener('click', () => {
   addCategory();
