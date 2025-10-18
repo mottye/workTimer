@@ -10,7 +10,8 @@ let nextCategoryId = 1;
 // Slack Webhook URL を保存する変数
 let slackWebhookUrl = null;
 let slackUsername = ''; // Slackに通知する際のユーザ名
-let slackWebhookEnabled = false; // Slack通知の有効/無効
+let slackWebhookEnabled = false; // タイマー操作のSlack通知の有効/無効
+let slackTaskCompleteEnabled = false; // タスク完了のSlack通知の有効/無効
 let apiKey = ''; // AI APIキー
 let alwaysOnTop = true; // 常に最前面に表示
 
@@ -47,6 +48,12 @@ function loadSlackWebhookUrl() {
   if (savedEnabled !== null) {
     slackWebhookEnabled = savedEnabled === 'true';
     console.log('Slack Webhook有効状態を読み込みました:', slackWebhookEnabled);
+  }
+  
+  const savedTaskCompleteEnabled = localStorage.getItem('slackTaskCompleteEnabled');
+  if (savedTaskCompleteEnabled !== null) {
+    slackTaskCompleteEnabled = savedTaskCompleteEnabled === 'true';
+    console.log('Slackタスク完了通知有効状態を読み込みました:', slackTaskCompleteEnabled);
   }
 }
 
@@ -1456,6 +1463,7 @@ const slackWebhookDialog = document.getElementById('slackWebhookDialog');
 const slackWebhookInput = document.getElementById('slackWebhookInput');
 const slackUsernameInput = document.getElementById('slackUsernameInput');
 const slackWebhookEnabledCheckbox = document.getElementById('slackWebhookEnabled');
+const slackTaskCompleteEnabledCheckbox = document.getElementById('slackTaskCompleteEnabled');
 const slackWebhookSave = document.getElementById('slackWebhookSave');
 const slackWebhookCancel = document.getElementById('slackWebhookCancel');
 const sendSlackNotificationScheduleBtn = document.getElementById('sendSlackNotificationScheduleBtn');
@@ -1505,6 +1513,7 @@ function openSlackWebhookDialog() {
   slackWebhookInput.value = slackWebhookUrl || '';
   slackUsernameInput.value = slackUsername || '';
   slackWebhookEnabledCheckbox.checked = slackWebhookEnabled;
+  slackTaskCompleteEnabledCheckbox.checked = slackTaskCompleteEnabled;
   slackWebhookDialog.classList.remove('hidden');
   slackWebhookInput.focus();
   dropdownMenu.classList.add('hidden');
@@ -1863,8 +1872,24 @@ function formatTimeForSlack(totalSeconds) {
 
 // タイマー操作時のSlack通知
 async function sendSlackActivityNotification(stopwatch, action) {
-  // Slack通知が無効の場合はスキップ
-  if (!slackWebhookEnabled || !slackWebhookUrl) {
+  // Webhook URLが設定されていない場合はスキップ
+  if (!slackWebhookUrl) {
+    return;
+  }
+  
+  // アクションに応じて適切なフラグをチェック
+  const isTimerOperation = action === 'start' || action === 'pause';
+  const isTaskComplete = action === 'complete' || action === 'uncomplete';
+  
+  // タイマー操作の通知が無効、またはタスク完了の通知が無効の場合はスキップ
+  if (isTimerOperation && !slackWebhookEnabled) {
+    return;
+  }
+  if (isTaskComplete && !slackTaskCompleteEnabled) {
+    return;
+  }
+  // clear, reset などその他のアクションは通知しない
+  if (!isTimerOperation && !isTaskComplete) {
     return;
   }
   
@@ -2027,6 +2052,7 @@ slackWebhookSave.addEventListener('click', () => {
   const newUrl = slackWebhookInput.value.trim();
   const newUsername = slackUsernameInput.value.trim();
   const isEnabled = slackWebhookEnabledCheckbox.checked;
+  const isTaskCompleteEnabled = slackTaskCompleteEnabledCheckbox.checked;
   
   if (newUrl === '') {
     // 空文字の場合は削除
@@ -2045,10 +2071,15 @@ slackWebhookSave.addEventListener('click', () => {
   localStorage.setItem('slackUsername', slackUsername);
   console.log('Slackユーザ名を保存しました:', slackUsername);
   
-  // 有効/無効の状態を保存
+  // タイマー操作通知の有効/無効の状態を保存
   slackWebhookEnabled = isEnabled;
   localStorage.setItem('slackWebhookEnabled', slackWebhookEnabled.toString());
   console.log('Slack Webhook有効状態を保存しました:', slackWebhookEnabled);
+  
+  // タスク完了通知の有効/無効の状態を保存
+  slackTaskCompleteEnabled = isTaskCompleteEnabled;
+  localStorage.setItem('slackTaskCompleteEnabled', slackTaskCompleteEnabled.toString());
+  console.log('Slackタスク完了通知有効状態を保存しました:', slackTaskCompleteEnabled);
   
   // 成功メッセージを表示（alertのみ閉じて、ダイアログは開いたまま）
   alert('✅ Slack連携設定を保存しました');
