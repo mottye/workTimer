@@ -14,6 +14,9 @@ let slackWebhookEnabled = false; // Slack通知の有効/無効
 let apiKey = ''; // AI APIキー
 let alwaysOnTop = true; // 常に最前面に表示
 
+// 設定ダイアログから開いたかどうかのフラグ
+let openedFromSettings = false;
+
 // 保存先と自動保存設定
 let saveLocation = ''; // 保存先パス
 let autoSaveEnabled = false; // 自動保存の有効/無効
@@ -1690,6 +1693,10 @@ if (saveLocationOk) {
 if (saveLocationClose) {
   saveLocationClose.addEventListener('click', () => {
     closeSaveLocationDialog();
+    if (openedFromSettings) {
+      openedFromSettings = false;
+      openSettingsDialog();
+    }
   });
 }
 
@@ -2013,6 +2020,7 @@ if (settingsDialog) {
 // 設定ダイアログ内のSlack連携ボタン
 if (openSlackSettingsBtn) {
   openSlackSettingsBtn.addEventListener('click', () => {
+    openedFromSettings = true;
     closeSettingsDialog();
     openSlackWebhookDialog();
   });
@@ -2021,6 +2029,7 @@ if (openSlackSettingsBtn) {
 // 設定ダイアログ内のAI APIキー設定ボタン
 if (openApiKeySettingsBtn) {
   openApiKeySettingsBtn.addEventListener('click', () => {
+    openedFromSettings = true;
     closeSettingsDialog();
     openApiKeyDialog();
   });
@@ -2029,6 +2038,7 @@ if (openApiKeySettingsBtn) {
 // 設定ダイアログ内の保存先設定ボタン
 if (openSaveLocationSettingsBtn) {
   openSaveLocationSettingsBtn.addEventListener('click', () => {
+    openedFromSettings = true;
     closeSettingsDialog();
     openSaveLocationDialog();
   });
@@ -2069,6 +2079,10 @@ slackWebhookSave.addEventListener('click', () => {
 // キャンセルボタン
 slackWebhookCancel.addEventListener('click', () => {
   closeSlackWebhookDialog();
+  if (openedFromSettings) {
+    openedFromSettings = false;
+    openSettingsDialog();
+  }
 });
 
 // オーバーレイクリックで閉じる
@@ -2103,6 +2117,10 @@ if (apiKeyOk) {
 if (apiKeyCancel) {
   apiKeyCancel.addEventListener('click', () => {
     closeApiKeyDialog();
+    if (openedFromSettings) {
+      openedFromSettings = false;
+      openSettingsDialog();
+    }
   });
 }
 
