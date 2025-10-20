@@ -425,6 +425,8 @@ class Stopwatch {
     this.targetSeconds = null; // 目標時間（秒）
     this.targetReached = false; // 目標達成フラグ
     this.isCompleted = false; // 作業完了フラグ
+    this.startTime = null; // 開始時刻（ミリ秒）
+    this.pausedElapsed = 0; // 一時停止時の累積時間（秒）
   }
 
   start() {
@@ -445,16 +447,27 @@ class Stopwatch {
       // 新規開始
       this.isRunning = true;
       this.isPaused = false;
+      this.pausedElapsed = this.elapsedSeconds; // 現在の経過時間を保存
     } else if (this.isPaused) {
       // 再開
       this.isPaused = false;
+      this.pausedElapsed = this.elapsedSeconds; // 一時停止時の経過時間を保存
     }
+
+    // 開始時刻を記録（現在時刻）
+    this.startTime = Date.now();
 
     // このストップウォッチを動作中として記録
     currentRunningStopwatchId = this.id;
 
     this.interval = setInterval(() => {
-      this.elapsedSeconds++;
+      // 開始時刻からの経過時間（秒）を計算
+      const elapsedMillis = Date.now() - this.startTime;
+      const elapsedSinceStart = Math.floor(elapsedMillis / 1000);
+      
+      // 累積時間 + 今回の経過時間
+      this.elapsedSeconds = this.pausedElapsed + elapsedSinceStart;
+      
       this.updateDisplay();
       
       // 目標時間達成チェック
@@ -465,7 +478,7 @@ class Stopwatch {
           silent: false
         });
       }
-    }, 1000);
+    }, 100); // 100msごとに更新（より滑らかに表示）
 
     this.updateButtons();
     
@@ -498,6 +511,8 @@ class Stopwatch {
     }
     this.isRunning = false;
     this.isPaused = false;
+    this.startTime = null;
+    this.pausedElapsed = 0;
     
     // このストップウォッチが動作中だった場合、動作中IDをクリア
     if (currentRunningStopwatchId === this.id) {
@@ -508,6 +523,8 @@ class Stopwatch {
   clear() {
     this.stop();
     this.elapsedSeconds = 0;
+    this.pausedElapsed = 0;
+    this.startTime = null;
     this.updateDisplay();
     this.updateButtons();
   }
